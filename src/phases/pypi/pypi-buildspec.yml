@@ -1,0 +1,21 @@
+version: 0.2
+
+env:
+  parameter-store:
+    TWINE_USERNAME: {{parameter_prefix}}.twine_username
+    TWINE_PASSWORD: {{parameter_prefix}}.twine_password
+    TWINE_REPOSITORY: {{parameter_prefix}}.twine_repo
+    {{#if twine_repo_url}}
+    TWINE_REPOSITORY_URL: {{parameter_prefix}}.twine_repo
+    {{/if}}
+
+phases:
+  pre_build:
+    commands:
+    - pip install twine wheel awscli
+    - pip install -r requirements.txt
+    - rm -rf dist
+  build:
+    commands:
+    - python setup.py sdist bdist_wheel
+    - twine upload dist/*

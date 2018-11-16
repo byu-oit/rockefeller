@@ -1,0 +1,9 @@
+version: 0.1
+
+phases:
+  pre_build:
+    commands:
+    - npm install -g handel
+  build:
+    commands:
+    - handel deploy -e $ENVS_TO_DEPLOY -c $HANDEL_ACCOUNT_CONFIG -t pipeline-name=$PIPELINE_NAME
