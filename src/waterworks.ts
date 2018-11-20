@@ -52,15 +52,15 @@ export function run() {
         case 'deploy':
             cli.deployAction(waterworksFile, argv);
             break;
-        // case 'check':
-        //     cli.checkAction(waterworksFile, argv);
-        //     break;
-        // case 'delete':
-        //     cli.deleteAction(waterworksFile, argv);
-        //     break;
-        // case 'list-required-secrets':
-        //     cli.listSecretsAction(waterworksFile, argv);
-        //     break;
+        case 'check':
+            cli.checkAction(waterworksFile, argv);
+            break;
+        case 'delete':
+            cli.deleteAction(waterworksFile, argv);
+            break;
+        case 'list-required-secrets':
+            cli.listSecretsAction(waterworksFile, argv);
+            break;
         default:
             printGeneralUsage();
     }

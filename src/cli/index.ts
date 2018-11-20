@@ -21,7 +21,7 @@ import * as winston from 'winston';
 import * as iamCalls from '../aws/iam-calls';
 import * as s3Calls from '../aws/s3-calls';
 import * as util from '../common/util';
-import { PhaseDeployers, WaterworksFile } from '../datatypes/index';
+import { PhaseDeployers, PhaseSecretQuestion, WaterworksFile } from '../datatypes/index';
 import * as input from '../input';
 import * as lifecycle from '../lifecycle';
 
@@ -128,63 +128,63 @@ export async function deployAction(waterworksFile: WaterworksFile, argv: ParsedA
     }
 }
 
-// export function checkAction(handelCodePipelineFile: HandelCodePipelineFile, argv: ParsedArgs) {
-//     configureLogger(argv);
-//     const phaseDeployers = util.getPhaseDeployers();
-//     validatePipelineSpec(handelCodePipelineFile);
-//     checkPhases(handelCodePipelineFile, phaseDeployers);
-//     winston.info('No errors were found in your Handel-CodePipeline file');
-// }
+export function checkAction(waterworksFile: WaterworksFile, argv: ParsedArgs) {
+    configureLogger(argv);
+    const phaseDeployers = util.getPhaseDeployers();
+    lifecycle.validatePipelineSpec(waterworksFile);
+    checkPhases(waterworksFile, phaseDeployers);
+    winston.info('No errors were found in your Handel-CodePipeline file');
+}
 
-// export async function deleteAction(handelCodePipelineFile: HandelCodePipelineFile, argv: ParsedArgs) {
-//     configureLogger(argv);
-//     if(!(argv.pipeline && argv.account_name)) {
-//         winston.info('Welcome to the Handel CodePipeline deletion wizard');
-//     }
+export async function deleteAction(waterworksFile: WaterworksFile, argv: ParsedArgs) {
+    configureLogger(argv);
+    if(!(argv.pipeline && argv.account_name)) {
+        winston.info('Welcome to the Handel CodePipeline deletion wizard');
+    }
 
-//     const phaseDeployers = util.getPhaseDeployers();
+    const phaseDeployers = util.getPhaseDeployers();
 
-//     const pipelineConfig = await input.getPipelineConfigForDelete(argv);
-//     const accountName = pipelineConfig.accountName;
-//     const accountConfig = util.getAccountConfig(pipelineConfig.accountConfigsPath, accountName);
+    const pipelineConfig = await input.getPipelineConfigForDelete(argv);
+    const accountName = pipelineConfig.accountName;
+    const accountConfig = util.getAccountConfig(pipelineConfig.accountConfigsPath, accountName);
 
-//     await validateCredentials(accountConfig);
-//     AWS.config.update({ region: accountConfig.region });
-//     const codePipelineBucketName = getCodePipelineBucketName(accountConfig);
-//     const pipelineName = pipelineConfig.pipelineToDelete;
-//     const appName = handelCodePipelineFile.name;
+    await validateCredentials(accountConfig);
+    AWS.config.update({ region: accountConfig.region });
+    const codePipelineBucketName = getCodePipelineBucketName(accountConfig);
+    const pipelineName = pipelineConfig.pipelineToDelete;
+    const appName = waterworksFile.name;
 
-//     try {
-//         const deleteWebhook = await lifecycle.removeWebhooks(phaseDeployers, handelCodePipelineFile, pipelineName, accountConfig, codePipelineBucketName);
-//         const deleteResult = await lifecycle.deletePipeline(appName, pipelineName);
-//         return lifecycle.deletePhases(phaseDeployers, handelCodePipelineFile, pipelineName, accountConfig, codePipelineBucketName);
-//     }
-//     catch (err) {
-//         winston.error(`Error deleting Handel CodePipeline: ${err}`);
-//         winston.error(err);
-//         process.exit(1);
-//     }
-// }
+    try {
+        await lifecycle.removeWebhooks(phaseDeployers, waterworksFile, pipelineName, accountConfig, codePipelineBucketName);
+        await lifecycle.deletePipeline(appName, pipelineName);
+        return lifecycle.deletePhases(phaseDeployers, waterworksFile, pipelineName, accountConfig, codePipelineBucketName);
+    }
+    catch (err) {
+        winston.error(`Error deleting Handel CodePipeline: ${err}`);
+        winston.error(err);
+        process.exit(1);
+    }
+}
 
-// export async function listSecretsAction(handelCodePipelineFile: HandelCodePipelineFile, argv: ParsedArgs) {
-//     if(!argv.pipeline) {
-//         winston.error('The --pipeline argument is required');
-//         process.exit(1);
-//     }
-//     if (!handelCodePipelineFile.pipelines[argv.pipeline]) {
-//         throw new Error(`The pipeline '${argv.pipeline}' you specified doesn't exist in your Handel-Codepipeline file`);
-//     }
-//     const phaseDeployers = util.getPhaseDeployers();
-//     const phaseDeployerSecretsQuestions: PhaseSecretQuestion[] = [];
-//     const pipelineConfig = handelCodePipelineFile.pipelines[argv.pipeline];
-//     for(const phaseConfig of pipelineConfig.phases) {
-//         const phaseDeployer = phaseDeployers[phaseConfig.type];
-//         const questions = phaseDeployer.getSecretQuestions(phaseConfig);
-//         questions.forEach((question: PhaseSecretQuestion) => {
-//             phaseDeployerSecretsQuestions.push(question);
-//         });
-//         // phaseDeployerSecretsQuestions.concat(questions);
-//     }
-//     // tslint:disable-next-line:no-console
-//     console.log(JSON.stringify(phaseDeployerSecretsQuestions));
-// }
+export async function listSecretsAction(waterworksFile: WaterworksFile, argv: ParsedArgs) {
+    if(!argv.pipeline) {
+        winston.error('The --pipeline argument is required');
+        process.exit(1);
+    }
+    if (!waterworksFile.pipelines[argv.pipeline]) {
+        throw new Error(`The pipeline '${argv.pipeline}' you specified doesn't exist in your Handel-Codepipeline file`);
+    }
+    const phaseDeployers = util.getPhaseDeployers();
+    const phaseDeployerSecretsQuestions: PhaseSecretQuestion[] = [];
+    const pipelineConfig = waterworksFile.pipelines[argv.pipeline];
+    for(const phaseConfig of pipelineConfig.phases) {
+        const phaseDeployer = phaseDeployers[phaseConfig.type];
+        const questions = phaseDeployer.getSecretQuestions(phaseConfig);
+        questions.forEach((question: PhaseSecretQuestion) => {
+            phaseDeployerSecretsQuestions.push(question);
+        });
+        // phaseDeployerSecretsQuestions.concat(questions);
+    }
+    // tslint:disable-next-line:no-console
+    console.log(JSON.stringify(phaseDeployerSecretsQuestions));
+}
