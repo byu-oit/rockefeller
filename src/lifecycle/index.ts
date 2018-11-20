@@ -205,28 +205,28 @@ export async function deployPipeline(waterworksFile: WaterworksFile,
     }
 }
 
-// export function deletePhases(phaseDeployers: PhaseDeployers,
-//     handelCodePipelineFile: HandelCodePipelineFile,
-//     pipelineName: string,
-//     accountConfig: AccountConfig,
-//     codePipelineBucketName: string) {
-//     const deletePromises = [];
+export function deletePhases(phaseDeployers: PhaseDeployers,
+    waterworksFile: WaterworksFile,
+    pipelineName: string,
+    accountConfig: AccountConfig,
+    codePipelineBucketName: string) {
+    const deletePromises = [];
 
-//     const pipelinePhases = handelCodePipelineFile.pipelines[pipelineName].phases;
-//     for (const pipelinePhase of pipelinePhases) {
-//         const phaseType = pipelinePhase.type;
-//         const phaseDeloyer = phaseDeployers[phaseType];
+    const pipelinePhases = waterworksFile.pipelines[pipelineName].phases;
+    for (const pipelinePhase of pipelinePhases) {
+        const phaseType = pipelinePhase.type;
+        const phaseDeloyer = phaseDeployers[phaseType];
 
-//         const phaseContext = getPhaseContext(handelCodePipelineFile, codePipelineBucketName, pipelineName, accountConfig, pipelinePhase, {}); // Don't need phase secrets for delete
-//         deletePromises.push(phaseDeloyer.deletePhase(phaseContext, accountConfig));
-//     }
+        const phaseContext = getPhaseContext(waterworksFile, codePipelineBucketName, pipelineName, accountConfig, pipelinePhase, {}); // Don't need phase secrets for delete
+        deletePromises.push(phaseDeloyer.deletePhase(phaseContext, accountConfig));
+    }
 
-//     return Promise.all(deletePromises);
-// }
+    return Promise.all(deletePromises);
+}
 
-// export function deletePipeline(appName: string, pipelineName: string) {
-//     return codepipelineCalls.deletePipeline(appName, pipelineName);
-// }
+export function deletePipeline(appName: string, pipelineName: string) {
+    return codepipelineCalls.deletePipeline(appName, pipelineName);
+}
 
 export async function addWebhooks(phaseDeployers: PhaseDeployers,
     waterworksFile: WaterworksFile,
@@ -244,18 +244,18 @@ export async function addWebhooks(phaseDeployers: PhaseDeployers,
     }
 }
 
-// export async function removeWebhooks(phaseDeployers: PhaseDeployers,
-//     handelCodePipelineFile: HandelCodePipelineFile,
-//     pipelineName: string,
-//     accountConfig: AccountConfig,
-//     codePipelineBucketName: string) {
-//     const pipelinePhases = handelCodePipelineFile.pipelines[pipelineName].phases;
-//     for (const pipelinePhase of pipelinePhases) {
-//         const phaseType = pipelinePhase.type;
-//         const phaseDeloyer = phaseDeployers[phaseType];
-//         if (phaseDeloyer.removeWebhook) {
-//             const phaseContext = getPhaseContext(handelCodePipelineFile, codePipelineBucketName, pipelineName, accountConfig, pipelinePhase, {});
-//             await phaseDeloyer.removeWebhook(phaseContext);
-//         }
-//     }
-// }
+export async function removeWebhooks(phaseDeployers: PhaseDeployers,
+    waterworksFile: WaterworksFile,
+    pipelineName: string,
+    accountConfig: AccountConfig,
+    codePipelineBucketName: string) {
+    const pipelinePhases = waterworksFile.pipelines[pipelineName].phases;
+    for (const pipelinePhase of pipelinePhases) {
+        const phaseType = pipelinePhase.type;
+        const phaseDeloyer = phaseDeployers[phaseType];
+        if (phaseDeloyer.removeWebhook) {
+            const phaseContext = getPhaseContext(waterworksFile, codePipelineBucketName, pipelineName, accountConfig, pipelinePhase, {});
+            await phaseDeloyer.removeWebhook(phaseContext);
+        }
+    }
+}
