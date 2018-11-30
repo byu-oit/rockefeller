@@ -14,6 +14,20 @@ export interface EnvironmentVariables {
     [key: string]: string;
 }
 
+export class PipelineContext {
+    public rockefellerVersion: number;
+    public appName: string;
+    public pipelineName: string;
+    public accountConfig: AccountConfig;
+
+    constructor(rockefellerVersion: number, appName: string, pipelineName: string, accountConfig: AccountConfig) {
+        this.rockefellerVersion = rockefellerVersion;
+        this.appName = appName;
+        this.pipelineName = pipelineName;
+        this.accountConfig = accountConfig;
+    }
+}
+
 export class PhaseContext<Config extends PhaseConfig> {
     public appName: string;
     public phaseName: string;
