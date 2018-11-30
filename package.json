@@ -1,6 +1,6 @@
 {
   "name": "rockefeller",
-  "version": "0.0.2",
+  "version": "0.0.3",
   "description": "Own your AWS CodePipelines like an Oil Baron",
   "scripts": {
     "lint": "tslint -p tsconfig.json -t stylish",
