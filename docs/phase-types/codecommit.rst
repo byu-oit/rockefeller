@@ -1,6 +1,6 @@
 CodeCommit
 ==========
-The *CodeCommit* phase type configures a pipeline phase to pull source code from CodeCommit. The pipeline is launched when code is pushed to CodeCommit on the specified branch. The first phase of every pipeline created with Handel-CodePipeline must be a source code phase such as this CodeCommit type. 
+The *CodeCommit* phase type configures a pipeline phase to pull source code from CodeCommit. The pipeline is launched when code is pushed to CodeCommit on the specified branch. The first phase of every pipeline created with Rockefeller must be a source code phase such as this CodeCommit type. 
 
 Parameters
 ----------
@@ -41,7 +41,7 @@ This phase type doesn't prompt for any secrets when creating the pipeline.
 
 Example Phase Configuration
 ---------------------------
-This snippet of a handel-codepipeline.yml file shows the CodeCommit phase being configured:
+This snippet of a rockefeller.yml file shows the CodeCommit phase being configured:
 
 .. code-block:: yaml
     

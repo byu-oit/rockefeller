@@ -3,25 +3,25 @@
 CLI Reference
 =============
 
-The Handel-CodePipeline command-line interface should be run in a directory with a `handel-codepipeline.yml` file.
+The Rockefeller command-line interface should be run in a directory with a `rockefeller.yml` file.
 
 It defines four commands: `check`, `deploy`, `delete` and `list-required-secrets`
 
 .. _cli-check:
 
-`handel-codepipeline check`
+`rockefeller check`
 ---------------------------
 
-Validates that a given Handel-CodePipeline configuration is valid.
+Validates that a given Rockefeller configuration is valid.
 
 Parameters
 ~~~~~~~~~~
 
-`handel-codepipeline check` does not accept parameters.
+`rockefeller check` does not accept parameters.
 
 .. _cli-deploy:
 
-`handel-codepipieline deploy`
+`rockefeller deploy`
 -----------------------------
 
 Validates and deploys the resources in a given environment.
@@ -41,7 +41,7 @@ Parameters
      - string
      - Yes
      -
-     - The pipeline from your handel-codepipeline.yml file that you wish to deploy.
+     - The pipeline from your rockefeller.yml file that you wish to deploy.
    * - --account_name <value>
      - string
      - Yes
@@ -65,14 +65,14 @@ A base64 encoded array of secrets objects.  Note that the required secrets can b
       {
           "phaseName": "Github", // The phase the secret is associated with.
           "name": "githubAccessToken", // The name of the secret
-          "message": "'Github' phase - Please enter your GitHub access token", // This is not necessary, but will be present if the original object was obtained from handel-codepipeline list-required-secrets.
+          "message": "'Github' phase - Please enter your GitHub access token", // This is not necessary, but will be present if the original object was obtained from rockefeller list-required-secrets.
           "value": "ABCDEFGHIJKLMNOPQRSTUVWXYZ" // The secret's value
       }
     ]
 
 .. _cli-delete:
 
-`handel-codepipeline delete`
+`rockefeller delete`
 ----------------------------
 
 Deletes the AWS CodePipeline.
@@ -92,7 +92,7 @@ Parameters
      - string
      - Yes
      -
-     - The pipeline from your handel-codepipeline.yml file that you wish to delete.
+     - The pipeline from your rockefeller.yml file that you wish to delete.
    * - --account_name <value>
      - string
      - Yes
@@ -101,7 +101,7 @@ Parameters
 
 .. _list-required-secrets:
 
-`handel-codepipeline list-required-secrets`
+`rockefeller list-required-secrets`
 -------------------------------------------
 
 Returns a JSON string with all of the secrets required for the pipeline.
@@ -121,7 +121,7 @@ Parameters
      - string
      - Yes
      -
-     - The pipeline from your handel-codepipeline.yml file that you want to retreive required secrets from.
+     - The pipeline from your rockefeller.yml file that you want to retreive required secrets from.
 
 Example Response
 ~~~~~~~~~~~~~~~~

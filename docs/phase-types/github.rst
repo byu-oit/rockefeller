@@ -1,6 +1,6 @@
 GitHub
 ======
-The *GitHub* phase type configures a pipeline phase to pull source code from GitHub. The pipeline is launched when code is pushed to GitHub on the specified branch. The first phase of every pipeline created with Handel-CodePipeline must be a source code phase such as this GitHub type. 
+The *GitHub* phase type configures a pipeline phase to pull source code from GitHub. The pipeline is launched when code is pushed to GitHub on the specified branch. The first phase of every pipeline created with Rockefeller must be a source code phase such as this GitHub type. 
 
 Parameters
 ----------
@@ -41,16 +41,16 @@ Parameters
 
 Secrets
 -------
-In addition to the parameters specified in your handel-codepipeline.yml file, this phase will prompt you for the following secret information when creating your pipeline:
+In addition to the parameters specified in your rockefeller.yml file, this phase will prompt you for the following secret information when creating your pipeline:
 
 * GitHub personal access token.
 
-This is not saved in your handel-codepipeline.yml file because by having the token others can interact with GitHub on your behalf.
+This is not saved in your rockefeller.yml file because by having the token others can interact with GitHub on your behalf.
 
 
 Example Phase Configuration
 ---------------------------
-This snippet of a handel-codepipeline.yml file shows the GitHub phase being configured:
+This snippet of a rockefeller.yml file shows the GitHub phase being configured:
 
 .. code-block:: yaml
     

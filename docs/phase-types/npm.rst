@@ -31,15 +31,15 @@ Parameters
 
 Secrets
 -------
-In addition to the parameters specified in your handel-codepipeline.yml file, this phase will prompt you for the following secret information when creating your pipeline:
+In addition to the parameters specified in your rockefeller.yml file, this phase will prompt you for the following secret information when creating your pipeline:
 
 * NPM Token
 
-For Security reasons these are not saved in your handel-codepipeline.yml file. The NPM token can be found in your .npmrc file see `here <http://blog.npmjs.org/post/118393368555/deploying-with-npm-private-modules>`_ for more information.
+For Security reasons these are not saved in your rockefeller.yml file. The NPM token can be found in your .npmrc file see `here <http://blog.npmjs.org/post/118393368555/deploying-with-npm-private-modules>`_ for more information.
 
 Example Phase Configuration
 ---------------------------
-This snippet of a handel-codepipeline.yml file shows the NPM phase being configured:
+This snippet of a rockefeller.yml file shows the NPM phase being configured:
 
 .. code-block:: yaml
 

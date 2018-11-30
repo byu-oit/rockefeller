@@ -1,12 +1,12 @@
-.. _handel-codepipeline-tutorial:
+.. _rockefeller-tutorial:
 
 Tutorial
 ========
-This page contains a tutorial showing how to use Handel-CodePipeline to set up a pipeline using Handel for deployments. 
+This page contains a tutorial showing how to use Rockefeller to set up a pipeline using Handel for deployments. 
 
 .. IMPORTANT::
 
-    Before going through this tutorial, make sure you have installed Handel-CodePipeline on your machine as shown in the :ref:`installation` section.
+    Before going through this tutorial, make sure you have installed Rockefeller on your machine as shown in the :ref:`installation` section.
     
     This tutorial also assumes you already have an application with a valid `Handel file <http://handel.readthedocs.io/en/latest/>`_ configured.
 
@@ -14,7 +14,7 @@ Tutorial
 --------
 This tutorial contains the following steps:
 
-1. :ref:`tutorial-write-the-handel-codepipeline-file`
+1. :ref:`tutorial-write-the-rockefeller-file`
 2. :ref:`tutorial-write-the-buildspec-file`
 3. :ref:`tutorial-deploy-the-pipeline`
 
@@ -25,9 +25,9 @@ Follow along with each of these steps in the sections below in order to complete
     This tutorial assumes you are deploying a Node.js application. You may need to modify some further things in this tutorial if you
     are using another platform.
 
-.. _tutorial-write-the-handel-codepipeline-file:
+.. _tutorial-write-the-rockefeller-file:
 
-Write the Handel-CodePipeline File
+Write the Rockefeller File
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 We're going to create a single pipeline with three phases:
 
@@ -35,7 +35,7 @@ We're going to create a single pipeline with three phases:
 2. Build the project using CodeBuild.
 3. Deploy the project using Handel.
 
-Create a file named *handel-codepipeline.yml* in the root of your repository with the following contents:
+Create a file named *rockefeller.yml* in the root of your repository with the following contents:
 
 .. code-block:: yaml
 
@@ -93,25 +93,25 @@ Deploy the Pipeline
 ~~~~~~~~~~~~~~~~~~~
 .. IMPORTANT::
 
-    Before running Handel-CodePipeline, you must be logged into your AWS account on the command line. You can do this by setting your AWS access keys using the AWS CLI.
+    Before running Rockefeller, you must be logged into your AWS account on the command line. You can do this by setting your AWS access keys using the AWS CLI.
 
     See Configuring the AWS CLI for help on doing this once you’ve installed the AWS CLI.
 
     If you work for an organization that uses federated logins through something like ADFS, then you’ll have a different process for logging in on the command-line. In this case, ask your organization how they login to AWS on the command-line.
 
 
-Now that you have your *handel-codepipeline.yml* and *buildspec.yml* files, you can deploy the pipeline:
+Now that you have your *rockefeller.yml* and *buildspec.yml* files, you can deploy the pipeline:
 
 .. code-block:: bash
 
-    handel-codepipeline deploy
+    rockefeller deploy
 
 The pipeline will ask a series of questions with additional information and secrets it needs:
 
 .. code-block:: none
 
-    info:    Welcome to the Handel CodePipeline setup wizard
-    ? Please enter the name of the pipeline from your handel-codepipeline.yml file that you would like to deploy
+    info:    Welcome to the Rockfeller setup wizard
+    ? Please enter the name of the pipeline from your rockefeller.yml file that you would like to deploy
     ? Please enter the name of the account where your pipeline will be deployed
     ? Please enter the path to the directory containing the Handel account configuration files
     ? 'GitHub' phase - Please enter your GitHub access token
@@ -129,13 +129,13 @@ Next Steps
 ----------
 Now that you've deployed a simple pipeline, where do you go next?
 
-Learn more about Handel-CodePipeline
+Learn more about Rockefeller
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-Read through the following documents in the :ref:`handel-codepipeline-basics` section:
+Read through the following documents in the :ref:`rockefeller-basics` section:
 
-* :ref:`using-handel-codepipeline`
-* :ref:`handel-codepipeline-file`
+* :ref:`using-rockefeller`
+* :ref:`rockefeller-file`
 
 Learn about the different phase types
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-Once you understand Handel-CodePipelines's basic configuration, see the :ref:`supported-phase-types` section, which contains information about the different phase types supported in Handel-CodePipeline 
+Once you understand Rockefellers's basic configuration, see the :ref:`supported-phase-types` section, which contains information about the different phase types supported in Rockefeller 

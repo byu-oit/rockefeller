@@ -29,7 +29,7 @@ This phase type doesn't prompt for any secrets when creating the pipeline.
 
 Example Phase Configuration
 ---------------------------
-This snippet of a *handel-codepipeline.yml* file shows the GitHub phase being configured:
+This snippet of a *rockefeller.yml* file shows the GitHub phase being configured:
 
 .. code-block:: yaml
     

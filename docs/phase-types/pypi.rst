@@ -36,16 +36,16 @@ Parameters
 
 Secrets
 -------
-In addition to the parameters specified in your handel-codepipeline.yml file, this phase will prompt you for the following secret information when creating your pipeline:
+In addition to the parameters specified in your rockefeller.yml file, this phase will prompt you for the following secret information when creating your pipeline:
 
 * Pypi Username.
 * Pypi Password.
 
-For Security reasons these are not saved in your handel-codepipeline.yml file.
+For Security reasons these are not saved in your rockefeller.yml file.
 
 Example Phase Configuration
 ---------------------------
-This snippet of a handel-codepipeline.yml file shows the Pypi phase being configured:
+This snippet of a rockefeller.yml file shows the Pypi phase being configured:
 
 .. code-block:: yaml
 

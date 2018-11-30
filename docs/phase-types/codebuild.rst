@@ -1,6 +1,6 @@
 CodeBuild
 =========
-The *CodeBuild* phase type configures a pipeline phase to build the source code pulled from the repository. The second phase of every pipeline created with Handel-CodePipeline must be a build code phase such as this CodeBuild type.
+The *CodeBuild* phase type configures a pipeline phase to build the source code pulled from the repository. The second phase of every pipeline created with Rockefeller must be a build code phase such as this CodeBuild type.
 
 Build Configuration
 -------------------
@@ -107,7 +107,7 @@ This phase type doesn't prompt for any secrets when creating the pipeline.
 
 Example Phase Configuration
 ---------------------------
-This snippet of a handel-codepipeline.yml file shows the CodeBuild phase being configured:
+This snippet of a rockefeller.yml file shows the CodeBuild phase being configured:
 
 .. code-block:: yaml
     
@@ -124,7 +124,7 @@ This snippet of a handel-codepipeline.yml file shows the CodeBuild phase being c
             MY_CUSTOM_ENV: my_custom_value
         ...
 
-This is a snippet of a handel-codepipeline.yml file which includes an S3 bucket as an extra resource and a custom IAM role:
+This is a snippet of a rockefeller.yml file which includes an S3 bucket as an extra resource and a custom IAM role:
 
 .. code-block:: yaml
 

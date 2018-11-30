@@ -1,6 +1,6 @@
-Welcome to Handel-CodePipeline's documentation!
+Welcome to Rockefeller's documentation!
 ===============================================
-Handel-CodePipeline is a tool to easily create AWS CodePipelines, including support for `Handel <http://handel.readthedocs.io/en/latest/>`_ deployments.
+Rockefeller is a tool to easily create AWS CodePipelines, including support for `Handel <http://handel.readthedocs.io/en/latest/>`_ deployments.
 
 .. toctree::
    :maxdepth: 1
@@ -8,17 +8,17 @@ Handel-CodePipeline is a tool to easily create AWS CodePipelines, including supp
 
    getting-started/introduction
    getting-started/installation
-   getting-started/handel-codepipeline-tutorial
+   getting-started/rockefeller-tutorial
    getting-started/cli-reference
 
-.. _handel-codepipeline-basics:
+.. _rockefeller-basics:
 
 .. toctree::
    :maxdepth: 1
-   :caption: Handel-CodePipeline Basics
+   :caption: Rockefeller Basics
 
-   handel-codepipeline-basics/using-handel-codepipeline
-   handel-codepipeline-basics/handel-codepipeline-file
+   rockefeller-basics/using-rockefeller
+   rockefeller-basics/rockefeller-file
 
 .. _supported-phase-types:
 

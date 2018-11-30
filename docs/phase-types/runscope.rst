@@ -30,11 +30,11 @@ This phase will prompt you for the following secret information when creating yo
 * Runscope Trigger URL
 * Runscope API Access Token
 
-These secrets are not saved in your handel-codepipeline.yml file because they allow others to invoke your tests and make API calls to Runscope on your behalf.
+These secrets are not saved in your rockefeller.yml file because they allow others to invoke your tests and make API calls to Runscope on your behalf.
 
 Example Phase Configuration
 ---------------------------
-This snippet of a handel-codepipeline.yml file shows the GitHub phase being configured:
+This snippet of a rockefeller.yml file shows the GitHub phase being configured:
 
 .. code-block:: yaml
     
