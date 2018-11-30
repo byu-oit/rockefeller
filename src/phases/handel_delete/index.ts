@@ -30,10 +30,10 @@ function getDeleteProjectName(phaseContext: PhaseContext<HandelDeleteConfig>): s
     return `${phaseContext.appName}-${phaseContext.pipelineName}-${phaseContext.phaseName}`;
 }
 
-const DELETE_PHASE_ROLE_NAME = 'WaterworksDeletePhaseServiceRole';
+const DELETE_PHASE_ROLE_NAME = 'RockefellerDeletePhaseServiceRole';
 
 function getDeleteServiceRoleArn(accountId: string): string {
-    return `arn:aws:iam::${accountId}:policy/waterworks/${DELETE_PHASE_ROLE_NAME}`;
+    return `arn:aws:iam::${accountId}:policy/rockefeller/${DELETE_PHASE_ROLE_NAME}`;
 }
 
 async function createDeletePhaseServiceRole(accountId: string): Promise<AWS.IAM.Role | null> {

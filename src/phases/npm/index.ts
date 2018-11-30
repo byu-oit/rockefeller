@@ -42,11 +42,11 @@ function getNpmTokenName(phaseContext: PhaseContext<NpmConfig>): string {
 }
 
 function getNpmPhaseRoleName(appName: string): string {
-    return `${appName}-WaterworksNPMPhase`;
+    return `${appName}-RockefellerNPMPhase`;
 }
 
 function getNpmPhasePolicyArn(accountId: string, appName: string): string {
-    return `arn:aws:iam::${accountId}:policy/waterworks/${getNpmPhaseRoleName(appName)}`;
+    return `arn:aws:iam::${accountId}:policy/rockefeller/${getNpmPhaseRoleName(appName)}`;
 }
 
 async function createNpmPhaseServiceRole(accountConfig: AccountConfig, appName: string): Promise<AWS.IAM.Role | null> {

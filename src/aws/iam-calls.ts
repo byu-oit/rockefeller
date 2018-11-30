@@ -33,7 +33,7 @@ export async function createRole(roleName: string, trustedServices: string[]) {
     };
     const createParams = {
         AssumeRolePolicyDocument: JSON.stringify(assumeRolePolicyDoc),
-        Path: '/waterworks/',
+        Path: '/rockefeller/',
         RoleName: roleName
     };
     const createResponse = await awsWrapper.iam.createRole(createParams);
@@ -95,8 +95,8 @@ export async function createPolicy(policyName: string, policyDocument: any): Pro
     const createParams = {
         PolicyDocument: JSON.stringify(policyDocument),
         PolicyName: policyName,
-        Description: `Policy for Waterworks with name ${policyName}`,
-        Path: '/waterworks/'
+        Description: `Policy for Rockefeller with name ${policyName}`,
+        Path: '/rockefeller/'
     };
     const createResponse = await awsWrapper.iam.createPolicy(createParams);
     return createResponse.Policy;

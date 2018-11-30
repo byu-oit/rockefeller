@@ -52,7 +52,7 @@ export interface PhaseDeployer {
 
 }
 
-export interface WaterworksFile {
+export interface RockefellerFile {
     version: number;
     name: string;
     pipelines: PipelineDefinition;

@@ -28,7 +28,7 @@ export interface SlackNotifyConfig extends PhaseConfig {
     channel: string;
 }
 
-const STACK_NAME = 'WaterworksSlackNotifyLambda';
+const STACK_NAME = 'RockefellerSlackNotifyLambda';
 
 function getSlackNotifyPhaseSpec(phaseContext: PhaseContext<SlackNotifyConfig>, notifyFunctionName: string): AWS.CodePipeline.StageDeclaration {
     const userParameters = {
@@ -111,7 +111,7 @@ export async function deployPhase(phaseContext: PhaseContext<SlackNotifyConfig>,
             throw new Error(`Could not create role for Slack Notify lambda`);
         }
         const directoryToUpload = `${__dirname}/slack-notify-code`;
-        const s3FileName = 'waterworks/slackNotifyLambda';
+        const s3FileName = 'rockefeller/slackNotifyLambda';
         const s3BucketName = `codepipeline-${accountConfig.region}-${accountConfig.account_id}`;
         const s3ObjectInfo = await deployersCommon.uploadDirectoryToBucket(directoryToUpload, s3FileName, s3BucketName);
         const template = util.loadFile(`${__dirname}/lambda.yml`);
@@ -121,7 +121,7 @@ export async function deployPhase(phaseContext: PhaseContext<SlackNotifyConfig>,
         const parameters = {
             S3Bucket: s3ObjectInfo.Bucket,
             S3Key: s3ObjectInfo.Key,
-            Description: 'Lambda Function for the Slack notify phase in Waterworks',
+            Description: 'Lambda Function for the Slack notify phase in Rockefeller',
             FunctionName: STACK_NAME,
             Handler: 'notify.send_post',
             MemorySize: '128',

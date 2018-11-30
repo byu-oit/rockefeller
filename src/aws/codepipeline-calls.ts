@@ -22,11 +22,11 @@ import * as winston from 'winston';
 import * as iamCalls from '../aws/iam-calls';
 import awsWrapper from './aws-wrapper';
 
-const CODEPIPELINE_ROLE_NAME = 'WaterworksServiceRole';
+const CODEPIPELINE_ROLE_NAME = 'RockefellerServiceRole';
 
 async function createCodePipelineRole(accountId: string) {
     const trustedServices = ['codepipeline.amazonaws.com', 'cloudformation.amazonaws.com'];
-    const policyArn = `arn:aws:iam::${accountId}:policy/waterworks/${CODEPIPELINE_ROLE_NAME}`;
+    const policyArn = `arn:aws:iam::${accountId}:policy/rockefeller/${CODEPIPELINE_ROLE_NAME}`;
     const policyDocument = {
         Version: '2012-10-17',
         Statement: [

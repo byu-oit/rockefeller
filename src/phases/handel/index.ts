@@ -31,10 +31,10 @@ function getDeployProjectName(phaseContext: PhaseContext<HandelConfig>): string 
     return `${phaseContext.appName}-${phaseContext.pipelineName}-${phaseContext.phaseName}`;
 }
 
-const DEPLOY_PHASE_ROLE_NAME = 'WaterworksDeployPhaseServiceRole';
+const DEPLOY_PHASE_ROLE_NAME = 'RockefellerDeployPhaseServiceRole';
 
 function getDeployServiceRolePolicyArn(accountId: string): string {
-    return `arn:aws:iam::${accountId}:policy/waterworks/${DEPLOY_PHASE_ROLE_NAME}`;
+    return `arn:aws:iam::${accountId}:policy/rockefeller/${DEPLOY_PHASE_ROLE_NAME}`;
 }
 
 async function createDeployPhaseServiceRole(accountId: string): Promise<AWS.IAM.Role | null> {

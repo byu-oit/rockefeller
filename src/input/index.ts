@@ -21,8 +21,8 @@ import * as os from 'os';
 import * as util from '../common/util';
 import { PhaseSecrets } from '../datatypes/index';
 
-const WATERWORKS_DIR = `${os.homedir()}/.waterworks`;
-const WATERWORKS_CONFIG = `${WATERWORKS_DIR}/config.yml`;
+const ROCKEFELLER_DIR = `${os.homedir()}/.rockefeller`;
+const ROCKEFELLER_CONFIG = `${ROCKEFELLER_DIR}/config.yml`;
 
 interface ConfigParamCache {
     [key: string]: string;
@@ -36,31 +36,31 @@ function inquirerValidateFilePath(filePath: string): string | boolean {
 }
 
 function ensureConfigDirExists(): void {
-    if(!fs.existsSync(WATERWORKS_DIR)) {
-        fs.mkdirSync(WATERWORKS_DIR);
+    if(!fs.existsSync(ROCKEFELLER_DIR)) {
+        fs.mkdirSync(ROCKEFELLER_DIR);
     }
 }
 
 function getConfigParam(paramName: string): string | null {
-    if(fs.existsSync(WATERWORKS_CONFIG)) {
-        const waterworksConfig = util.loadYamlFile(WATERWORKS_CONFIG) as ConfigParamCache;
-        if(waterworksConfig[paramName]) {
-            return waterworksConfig[paramName];
+    if(fs.existsSync(ROCKEFELLER_CONFIG)) {
+        const rockefellerConfig = util.loadYamlFile(ROCKEFELLER_CONFIG) as ConfigParamCache;
+        if(rockefellerConfig[paramName]) {
+            return rockefellerConfig[paramName];
         }
     }
     return null;
 }
 
 function cacheConfigParam(paramName: string, paramValue: string) {
-    if(fs.existsSync(WATERWORKS_CONFIG)) {
-        const waterworksConfig = util.loadYamlFile(WATERWORKS_CONFIG) as ConfigParamCache;
-        waterworksConfig[paramName] = paramValue;
-        util.saveYamlFile(WATERWORKS_CONFIG, waterworksConfig);
+    if(fs.existsSync(ROCKEFELLER_CONFIG)) {
+        const rockefellerConfig = util.loadYamlFile(ROCKEFELLER_CONFIG) as ConfigParamCache;
+        rockefellerConfig[paramName] = paramValue;
+        util.saveYamlFile(ROCKEFELLER_CONFIG, rockefellerConfig);
     }
     else {
-        const waterworksConfig: ConfigParamCache = {};
-        waterworksConfig[paramName] = paramValue;
-        util.saveYamlFile(WATERWORKS_CONFIG, waterworksConfig);
+        const rockefellerConfig: ConfigParamCache = {};
+        rockefellerConfig[paramName] = paramValue;
+        util.saveYamlFile(ROCKEFELLER_CONFIG, rockefellerConfig);
     }
 }
 
@@ -86,7 +86,7 @@ export async function getPipelineConfigForDelete(argv: ParsedArgs): Promise<Phas
         {
             type: 'input',
             name: 'pipelineToDelete',
-            message: 'Please enter the name of the pipeline from your waterworks.yml file that you would like to delete',
+            message: 'Please enter the name of the pipeline from your rockefeller.yml file that you would like to delete',
         },
         {
             type: 'input',
@@ -96,14 +96,14 @@ export async function getPipelineConfigForDelete(argv: ParsedArgs): Promise<Phas
     ];
 
     if(argv.pipeline && argv.account_name) {
-        if(!fs.existsSync(WATERWORKS_DIR)) {
-            throw new Error('Waterworks config directory must exist when deploying with CLI params');
+        if(!fs.existsSync(ROCKEFELLER_DIR)) {
+            throw new Error('Rockefeller config directory must exist when deploying with CLI params');
         }
         const accountConfigsPath = getConfigParam('account_configs_path');
         if(accountConfigsPath) {
             secrets.accountConfigsPath = accountConfigsPath;
         } else {
-            throw new Error('account_configs_path not found in Waterworks config directory');
+            throw new Error('account_configs_path not found in Rockefeller config directory');
         }
         secrets.pipelineToDelete = argv.pipeline;
         secrets.accountName = argv.account_name;
@@ -131,7 +131,7 @@ export async function getPipelineParameters(argv: ParsedArgs): Promise<PhaseSecr
         {
             type: 'input',
             name: 'pipelineToDeploy',
-            message: 'Please enter the name of the pipeline from your waterworks.yml file that you would like to deploy',
+            message: 'Please enter the name of the pipeline from your rockefeller.yml file that you would like to deploy',
         },
         {
             type: 'input',
@@ -143,14 +143,14 @@ export async function getPipelineParameters(argv: ParsedArgs): Promise<PhaseSecr
     // Get account configs
     if(argv.pipeline && argv.account_name && argv.secrets) {
         // TODO - ALLOW PEOPLE TO CLEAR THIS CACHE? Another option is to ask again if we can't find the account config in the path they gave
-        if(!fs.existsSync(WATERWORKS_DIR)) {
-            throw new Error('Waterworks config directory must exist when deploying with CLI params');
+        if(!fs.existsSync(ROCKEFELLER_DIR)) {
+            throw new Error('Rockefeller config directory must exist when deploying with CLI params');
         }
         const accountConfigsPath = getConfigParam('account_configs_path');
         if(accountConfigsPath) {
             secrets.accountConfigsPath = accountConfigsPath;
         } else {
-            throw new Error('account_configs_path not found in Waterworks config directory');
+            throw new Error('account_configs_path not found in Rockefeller config directory');
         }
         secrets.pipelineToDeploy = argv.pipeline;
         secrets.accountName = argv.account_name;

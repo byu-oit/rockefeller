@@ -1,7 +1,7 @@
 {
-  "name": "waterworks",
+  "name": "rockefeller",
   "version": "0.0.1",
-  "description": "Create AWS CodePipelines with ease.",
+  "description": "Own your AWS CodePipelines like an Oil Baron",
   "scripts": {
     "lint": "tslint -p tsconfig.json -t stylish",
     "clean": "node npm-scripts.js clean",
@@ -11,7 +11,7 @@
     "test": "./node_modules/mocha/bin/mocha -r ts-node/register 'test/**/*.ts' && npm run build && ./node_modules/mocha/bin/mocha 'test/**/*.js'"
   },
   "bin": {
-    "waterworks": "./bin/waterworks"
+    "rockefeller": "./bin/rockefeller"
   },
   "author": "Michael Nguyen",
   "license": "Apache-2.0",

@@ -31,8 +31,8 @@ export async function uploadDirectoryToBucket(directoryToUpload: string, s3FileN
 }
 
 export async function createLambdaCodePipelineRole(accountId: string): Promise<AWS.IAM.Role | null> {
-    const roleName = 'WaterworksLambdaRole';
-    const policyArn = `arn:aws:iam::${accountId}:policy/waterworks/${roleName}`;
+    const roleName = 'RockefellerLambdaRole';
+    const policyArn = `arn:aws:iam::${accountId}:policy/rockefeller/${roleName}`;
     const policyDocument = {
         Version: '2012-10-17',
         Statement: [

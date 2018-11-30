@@ -23,7 +23,7 @@ import * as deployersCommon from '../../common/deployers-common';
 import * as util from '../../common/util';
 import { PhaseConfig, PhaseContext, PhaseSecretQuestion, PhaseSecrets } from '../../datatypes/index';
 
-const STACK_NAME = 'WaterworksRunscopeLambda';
+const STACK_NAME = 'RockefellerRunscopeLambda';
 
 function getRunscopePhaseSpec(phaseContext: PhaseContext<PhaseConfig>, runscopeFunctionName: string): AWS.CodePipeline.StageDeclaration {
     const userParameters = {
@@ -99,7 +99,7 @@ export async function deployPhase(phaseContext: PhaseContext<PhaseConfig>, accou
             throw new Error(`Runscope Lambda role could not be created`);
         }
         const directoryToUpload = `${__dirname}/runscope-code`;
-        const s3FileName = 'waterworks/runscope';
+        const s3FileName = 'rockefeller/runscope';
         const s3BucketName = `codepipeline-${accountConfig.region}-${accountConfig.account_id}`;
         const s3ObjectInfo = await deployersCommon.uploadDirectoryToBucket(directoryToUpload, s3FileName, s3BucketName);
         const template = util.loadFile(`${__dirname}/runscope-lambda.yml`);
@@ -109,7 +109,7 @@ export async function deployPhase(phaseContext: PhaseContext<PhaseConfig>, accou
         const parameters = {
             S3Bucket: s3ObjectInfo.Bucket,
             S3Key: s3ObjectInfo.Key,
-            Description: 'Lambda Function for the Runscope phase in Waterworks',
+            Description: 'Lambda Function for the Runscope phase in Rockefeller',
             FunctionName: STACK_NAME,
             Handler: 'runscope.run_tests',
             MemorySize: '128',

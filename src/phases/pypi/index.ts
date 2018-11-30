@@ -76,11 +76,11 @@ async function createPypiParameters(phaseContext: PhaseContext<PypiConfig>): Pro
 }
 
 function getPypiPhaseRoleName(appName: string): string {
-    return `${appName}-WaterworksPyPiPhase`;
+    return `${appName}-RockefellerPyPiPhase`;
 }
 
 function getPypiPhasePolicyArn(accountId: string, appName: string): string {
-    return `arn:aws:iam::${accountId}:policy/waterworks/${getPypiPhaseRoleName(appName)}`;
+    return `arn:aws:iam::${accountId}:policy/rockefeller/${getPypiPhaseRoleName(appName)}`;
 }
 
 async function createPypiPhaseServiceRole(accountConfig: AccountConfig, appName: string): Promise<AWS.IAM.Role | null> {

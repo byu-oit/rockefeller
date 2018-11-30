@@ -1,0 +1,3 @@
+#!/usr/bin/env node
+const rockefeller = require('../dist/rockefeller')
+rockefeller.run()

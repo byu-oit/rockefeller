@@ -1,5 +1,5 @@
-# Waterworks
-Create AWS CodePipelines with ease.
+# Rockefeller
+Own your AWS CodePipelines like an Oil Baron.
 
 # Usage
-See the [Waterworks docs](https://waterworks.readthedocs.io) on ReadTheDocs for documentation on this library.
+See the [Rockefeller docs](https://rockefeller.readthedocs.io) on ReadTheDocs for documentation on this library.

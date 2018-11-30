@@ -1,3 +1,0 @@
-#!/usr/bin/env node
-const waterworks = require('../dist/waterworks')
-waterworks.run()

@@ -23,7 +23,7 @@ import {
     PhaseContext,
     PhaseDeployers,
     PhaseSecrets,
-    WaterworksFile
+    RockefellerFile
 } from '../datatypes';
 
 interface PipelineCheckErrors {
@@ -44,14 +44,14 @@ function deployPhase(phaseContext: PhaseContext<PhaseConfig>, phaseDeployers: Ph
         });
 }
 
-function getPhaseContext(waterworksFile: WaterworksFile,
+function getPhaseContext(rockefellerFile: RockefellerFile,
     codePipelineBucketName: string,
     pipelineName: string,
     accountConfig: AccountConfig,
     phase: PhaseConfig,
     phaseSecrets: PhaseSecrets) {
     return {
-        appName: waterworksFile.name,
+        appName: rockefellerFile.name,
         codePipelineBucketName: codePipelineBucketName,
         pipelineName: pipelineName,
         accountConfig: accountConfig,
@@ -62,13 +62,13 @@ function getPhaseContext(waterworksFile: WaterworksFile,
     };
 }
 
-export function checkPhases(waterworksFile: WaterworksFile, phaseDeployers: PhaseDeployers): PipelineCheckErrors {
+export function checkPhases(rockefellerFile: RockefellerFile, phaseDeployers: PhaseDeployers): PipelineCheckErrors {
     const pipelineErrors: PipelineCheckErrors = {};
 
-    for (const pipelineName in waterworksFile.pipelines) {
-        if (waterworksFile.pipelines.hasOwnProperty(pipelineName)) {
+    for (const pipelineName in rockefellerFile.pipelines) {
+        if (rockefellerFile.pipelines.hasOwnProperty(pipelineName)) {
             pipelineErrors[pipelineName] = [];
-            const pipelineConfig = waterworksFile.pipelines[pipelineName];
+            const pipelineConfig = rockefellerFile.pipelines[pipelineName];
             for (const phaseConfig of pipelineConfig.phases) {
                 const phaseType = phaseConfig.type;
                 const phaseDeployer = phaseDeployers[phaseType];
@@ -89,20 +89,20 @@ export function checkPhases(waterworksFile: WaterworksFile, phaseDeployers: Phas
 }
 
 // TODO - Turn this into a JSON schema document
-export function validatePipelineSpec(waterworksFile: WaterworksFile): string[] {
+export function validatePipelineSpec(rockefellerFile: RockefellerFile): string[] {
     const errors: string[] = [];
 
-    if (!waterworksFile.name) {
+    if (!rockefellerFile.name) {
         errors.push(`The top-level 'name' field is required`);
     }
 
-    if (!waterworksFile.pipelines || Object.keys(waterworksFile.pipelines).length === 0) {
+    if (!rockefellerFile.pipelines || Object.keys(rockefellerFile.pipelines).length === 0) {
         errors.push(`You must specify at least one or more pipelines in the 'pipelines' field`);
     }
     else {
-        for (const pipelineName in waterworksFile.pipelines) {
-            if (waterworksFile.pipelines.hasOwnProperty(pipelineName)) {
-                const pipelineDef = waterworksFile.pipelines[pipelineName];
+        for (const pipelineName in rockefellerFile.pipelines) {
+            if (rockefellerFile.pipelines.hasOwnProperty(pipelineName)) {
+                const pipelineDef = rockefellerFile.pipelines[pipelineName];
                 if (!pipelineDef.phases) {
                     errors.push(`You must specify at least one or more phases in your pipeline ${pipelineName}`);
                 }
@@ -138,10 +138,10 @@ export function validatePipelineSpec(waterworksFile: WaterworksFile): string[] {
     return errors;
 }
 
-export async function getPhaseSecrets(phaseDeployers: PhaseDeployers, waterworksFile: WaterworksFile, pipelineName: string) {
+export async function getPhaseSecrets(phaseDeployers: PhaseDeployers, rockefellerFile: RockefellerFile, pipelineName: string) {
     const pipelineSecrets = [];
 
-    for(const phaseSpec of waterworksFile.pipelines[pipelineName].phases) {
+    for(const phaseSpec of rockefellerFile.pipelines[pipelineName].phases) {
         const phaseType = phaseSpec.type;
         const phaseDeployer = phaseDeployers[phaseType];
         const phaseSecrets = await phaseDeployer.getSecretsForPhase(phaseSpec);
@@ -151,9 +151,9 @@ export async function getPhaseSecrets(phaseDeployers: PhaseDeployers, waterworks
     return pipelineSecrets;
 }
 
-export function getSecretsFromArgv(waterworksFile: WaterworksFile, argv: ParsedArgs): PhaseSecrets[] {
+export function getSecretsFromArgv(rockefellerFile: RockefellerFile, argv: ParsedArgs): PhaseSecrets[] {
     argv.secrets = JSON.parse(new Buffer(argv.secrets, 'base64').toString());
-    const pipelinePhases = waterworksFile.pipelines[argv.pipeline].phases;
+    const pipelinePhases = rockefellerFile.pipelines[argv.pipeline].phases;
     const result: PhaseSecrets[] = [];
     // tslint:disable-next-line:prefer-for-of
     for (let i = 0; i < pipelinePhases.length; i++) {
@@ -170,30 +170,30 @@ export function getSecretsFromArgv(waterworksFile: WaterworksFile, argv: ParsedA
 }
 
 export function deployPhases(phaseDeployers: PhaseDeployers,
-    waterworksFile: WaterworksFile,
+    rockefellerFile: RockefellerFile,
     pipelineName: string,
     accountConfig: AccountConfig,
     phasesSecrets: PhaseSecrets[],
     codePipelineBucketName: string) {
     const deployPromises = [];
 
-    const pipelinePhases = waterworksFile.pipelines[pipelineName].phases;
+    const pipelinePhases = rockefellerFile.pipelines[pipelineName].phases;
     for (let i = 0; i < pipelinePhases.length; i++) {
         const phase = pipelinePhases[i];
         // TODO - Revisit how these PhaseContext objects look
-        const phaseContext = getPhaseContext(waterworksFile, codePipelineBucketName, pipelineName, accountConfig, phase, phasesSecrets[i]);
+        const phaseContext = getPhaseContext(rockefellerFile, codePipelineBucketName, pipelineName, accountConfig, phase, phasesSecrets[i]);
         deployPromises.push(deployPhase(phaseContext, phaseDeployers, accountConfig));
     }
 
     return Promise.all(deployPromises);
 }
 
-export async function deployPipeline(waterworksFile: WaterworksFile,
+export async function deployPipeline(rockefellerFile: RockefellerFile,
     pipelineName: string,
     accountConfig: AccountConfig,
     pipelinePhases: AWS.CodePipeline.StageDeclaration[],
     codePipelineBucketName: string) {
-    const appName = waterworksFile.name;
+    const appName = rockefellerFile.name;
     const pipelineProjectName = codepipelineCalls.getPipelineProjectName(appName, pipelineName);
 
     const pipeline = await codepipelineCalls.getPipeline(pipelineProjectName);
@@ -206,18 +206,18 @@ export async function deployPipeline(waterworksFile: WaterworksFile,
 }
 
 export function deletePhases(phaseDeployers: PhaseDeployers,
-    waterworksFile: WaterworksFile,
+    rockefellerFile: RockefellerFile,
     pipelineName: string,
     accountConfig: AccountConfig,
     codePipelineBucketName: string) {
     const deletePromises = [];
 
-    const pipelinePhases = waterworksFile.pipelines[pipelineName].phases;
+    const pipelinePhases = rockefellerFile.pipelines[pipelineName].phases;
     for (const pipelinePhase of pipelinePhases) {
         const phaseType = pipelinePhase.type;
         const phaseDeloyer = phaseDeployers[phaseType];
 
-        const phaseContext = getPhaseContext(waterworksFile, codePipelineBucketName, pipelineName, accountConfig, pipelinePhase, {}); // Don't need phase secrets for delete
+        const phaseContext = getPhaseContext(rockefellerFile, codePipelineBucketName, pipelineName, accountConfig, pipelinePhase, {}); // Don't need phase secrets for delete
         deletePromises.push(phaseDeloyer.deletePhase(phaseContext, accountConfig));
     }
 
@@ -229,32 +229,32 @@ export function deletePipeline(appName: string, pipelineName: string) {
 }
 
 export async function addWebhooks(phaseDeployers: PhaseDeployers,
-    waterworksFile: WaterworksFile,
+    rockefellerFile: RockefellerFile,
     pipelineName: string,
     accountConfig: AccountConfig,
     codePipelineBucketName: string) {
-    const pipelinePhases = waterworksFile.pipelines[pipelineName].phases;
+    const pipelinePhases = rockefellerFile.pipelines[pipelineName].phases;
     for (const pipelinePhase of pipelinePhases) {
         const phaseType = pipelinePhase.type;
         const phaseDeloyer = phaseDeployers[phaseType];
         if (phaseDeloyer.addWebhook) {
-            const phaseContext = getPhaseContext(waterworksFile, codePipelineBucketName, pipelineName, accountConfig, pipelinePhase, {});
+            const phaseContext = getPhaseContext(rockefellerFile, codePipelineBucketName, pipelineName, accountConfig, pipelinePhase, {});
             await phaseDeloyer.addWebhook(phaseContext);
         }
     }
 }
 
 export async function removeWebhooks(phaseDeployers: PhaseDeployers,
-    waterworksFile: WaterworksFile,
+    rockefellerFile: RockefellerFile,
     pipelineName: string,
     accountConfig: AccountConfig,
     codePipelineBucketName: string) {
-    const pipelinePhases = waterworksFile.pipelines[pipelineName].phases;
+    const pipelinePhases = rockefellerFile.pipelines[pipelineName].phases;
     for (const pipelinePhase of pipelinePhases) {
         const phaseType = pipelinePhase.type;
         const phaseDeloyer = phaseDeployers[phaseType];
         if (phaseDeloyer.removeWebhook) {
-            const phaseContext = getPhaseContext(waterworksFile, codePipelineBucketName, pipelineName, accountConfig, pipelinePhase, {});
+            const phaseContext = getPhaseContext(rockefellerFile, codePipelineBucketName, pipelineName, accountConfig, pipelinePhase, {});
             await phaseDeloyer.removeWebhook(phaseContext);
         }
     }

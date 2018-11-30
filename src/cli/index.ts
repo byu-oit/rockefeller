@@ -21,7 +21,7 @@ import * as winston from 'winston';
 import * as iamCalls from '../aws/iam-calls';
 import * as s3Calls from '../aws/s3-calls';
 import * as util from '../common/util';
-import { PhaseDeployers, PhaseSecretQuestion, WaterworksFile } from '../datatypes/index';
+import { PhaseDeployers, PhaseSecretQuestion, RockefellerFile } from '../datatypes/index';
 import * as input from '../input';
 import * as lifecycle from '../lifecycle';
 
@@ -38,17 +38,17 @@ function getCodePipelineBucketName(accountConfig: AccountConfig) {
     return `codepipeline-${accountConfig.region}-${accountConfig.account_id}`;
 }
 
-function validateWaterworksFile(waterworksFile: WaterworksFile) {
-    const validateErrors = lifecycle.validatePipelineSpec(waterworksFile);
+function validateRockefellerFile(rockefellerFile: RockefellerFile) {
+    const validateErrors = lifecycle.validatePipelineSpec(rockefellerFile);
     if (validateErrors.length > 0) {
-        winston.error('Errors while validating waterworks.yml file:');
+        winston.error('Errors while validating rockefeller.yml file:');
         winston.error(validateErrors.join('\n'));
         process.exit(1);
     }
 }
 
-function checkPhases(waterworksFile: WaterworksFile, phaseDeployers: PhaseDeployers) {
-    const pipelinePhaseErrors = lifecycle.checkPhases(waterworksFile, phaseDeployers);
+function checkPhases(rockefellerFile: RockefellerFile, phaseDeployers: PhaseDeployers) {
+    const pipelinePhaseErrors = lifecycle.checkPhases(rockefellerFile, phaseDeployers);
     let hadErrors = false;
     for (const pipelineName in pipelinePhaseErrors) {
         if (pipelinePhaseErrors.hasOwnProperty(pipelineName)) {
@@ -62,7 +62,7 @@ function checkPhases(waterworksFile: WaterworksFile, phaseDeployers: PhaseDeploy
     }
 
     if (hadErrors) {
-        winston.error('Errors were found while validating your Waterworks file');
+        winston.error('Errors were found while validating your Rockefeller file');
         process.exit(1);
     }
 }
@@ -87,16 +87,16 @@ async function validateCredentials(accountConfig: AccountConfig) {
 }
 
 // TODO - ADD SOME PIPELINECONTEXT OBJECT. This would replace the many things we pass around individually
-export async function deployAction(waterworksFile: WaterworksFile, argv: ParsedArgs) {
+export async function deployAction(rockefellerFile: RockefellerFile, argv: ParsedArgs) {
     configureLogger(argv);
     const phaseDeployers = util.getPhaseDeployers();
-    validateWaterworksFile(waterworksFile);
-    checkPhases(waterworksFile, phaseDeployers);
+    validateRockefellerFile(rockefellerFile);
+    checkPhases(rockefellerFile, phaseDeployers);
     const nonInteractive = (argv.pipeline && argv.account_name && argv.secrets);
 
     try {
         if(!nonInteractive) {
-            winston.info('Welcome to the Waterworks setup wizard');
+            winston.info('Welcome to the Rockefeller setup wizard');
         }
         const pipelineParameters = await input.getPipelineParameters(argv);
         const accountName = pipelineParameters.accountName;
@@ -106,37 +106,37 @@ export async function deployAction(waterworksFile: WaterworksFile, argv: ParsedA
         await validateCredentials(accountConfig);
         AWS.config.update({ region: accountConfig.region });
         const pipelineName = pipelineParameters.pipelineToDeploy;
-        if (!waterworksFile.pipelines[pipelineName]) {
-            throw new Error(`The pipeline '${pipelineName}' you specified doesn't exist in your Waterworks file`);
+        if (!rockefellerFile.pipelines[pipelineName]) {
+            throw new Error(`The pipeline '${pipelineName}' you specified doesn't exist in your Rockefeller file`);
         }
         const codePipelineBucketName = getCodePipelineBucketName(accountConfig);
         await s3Calls.createBucketIfNotExists(codePipelineBucketName, accountConfig.region);
         let phasesSecrets;
         if(nonInteractive) {
-            phasesSecrets = lifecycle.getSecretsFromArgv(waterworksFile, argv);
+            phasesSecrets = lifecycle.getSecretsFromArgv(rockefellerFile, argv);
         } else {
-            phasesSecrets = await lifecycle.getPhaseSecrets(phaseDeployers, waterworksFile, pipelineName);
+            phasesSecrets = await lifecycle.getPhaseSecrets(phaseDeployers, rockefellerFile, pipelineName);
         }
-        const pipelinePhases = await lifecycle.deployPhases(phaseDeployers, waterworksFile, pipelineName, accountConfig, phasesSecrets, codePipelineBucketName);
-        await lifecycle.deployPipeline(waterworksFile, pipelineName, accountConfig, pipelinePhases, codePipelineBucketName);
-        await lifecycle.addWebhooks(phaseDeployers, waterworksFile, pipelineName, accountConfig, codePipelineBucketName);
+        const pipelinePhases = await lifecycle.deployPhases(phaseDeployers, rockefellerFile, pipelineName, accountConfig, phasesSecrets, codePipelineBucketName);
+        await lifecycle.deployPipeline(rockefellerFile, pipelineName, accountConfig, pipelinePhases, codePipelineBucketName);
+        await lifecycle.addWebhooks(phaseDeployers, rockefellerFile, pipelineName, accountConfig, codePipelineBucketName);
         winston.info(`Finished creating pipeline in ${accountConfig.account_id}`);
     } catch(err) {
-        winston.error(`Error setting up Waterworks: ${err.message}`);
+        winston.error(`Error setting up Rockefeller: ${err.message}`);
         winston.error(err);
         process.exit(1);
     }
 }
 
-export function checkAction(waterworksFile: WaterworksFile, argv: ParsedArgs) {
+export function checkAction(rockefellerFile: RockefellerFile, argv: ParsedArgs) {
     configureLogger(argv);
     const phaseDeployers = util.getPhaseDeployers();
-    lifecycle.validatePipelineSpec(waterworksFile);
-    checkPhases(waterworksFile, phaseDeployers);
+    lifecycle.validatePipelineSpec(rockefellerFile);
+    checkPhases(rockefellerFile, phaseDeployers);
     winston.info('No errors were found in your Handel-CodePipeline file');
 }
 
-export async function deleteAction(waterworksFile: WaterworksFile, argv: ParsedArgs) {
+export async function deleteAction(rockefellerFile: RockefellerFile, argv: ParsedArgs) {
     configureLogger(argv);
     if(!(argv.pipeline && argv.account_name)) {
         winston.info('Welcome to the Handel CodePipeline deletion wizard');
@@ -152,12 +152,12 @@ export async function deleteAction(waterworksFile: WaterworksFile, argv: ParsedA
     AWS.config.update({ region: accountConfig.region });
     const codePipelineBucketName = getCodePipelineBucketName(accountConfig);
     const pipelineName = pipelineConfig.pipelineToDelete;
-    const appName = waterworksFile.name;
+    const appName = rockefellerFile.name;
 
     try {
-        await lifecycle.removeWebhooks(phaseDeployers, waterworksFile, pipelineName, accountConfig, codePipelineBucketName);
+        await lifecycle.removeWebhooks(phaseDeployers, rockefellerFile, pipelineName, accountConfig, codePipelineBucketName);
         await lifecycle.deletePipeline(appName, pipelineName);
-        return lifecycle.deletePhases(phaseDeployers, waterworksFile, pipelineName, accountConfig, codePipelineBucketName);
+        return lifecycle.deletePhases(phaseDeployers, rockefellerFile, pipelineName, accountConfig, codePipelineBucketName);
     }
     catch (err) {
         winston.error(`Error deleting Handel CodePipeline: ${err}`);
@@ -166,17 +166,17 @@ export async function deleteAction(waterworksFile: WaterworksFile, argv: ParsedA
     }
 }
 
-export async function listSecretsAction(waterworksFile: WaterworksFile, argv: ParsedArgs) {
+export async function listSecretsAction(rockefellerFile: RockefellerFile, argv: ParsedArgs) {
     if(!argv.pipeline) {
         winston.error('The --pipeline argument is required');
         process.exit(1);
     }
-    if (!waterworksFile.pipelines[argv.pipeline]) {
+    if (!rockefellerFile.pipelines[argv.pipeline]) {
         throw new Error(`The pipeline '${argv.pipeline}' you specified doesn't exist in your Handel-Codepipeline file`);
     }
     const phaseDeployers = util.getPhaseDeployers();
     const phaseDeployerSecretsQuestions: PhaseSecretQuestion[] = [];
-    const pipelineConfig = waterworksFile.pipelines[argv.pipeline];
+    const pipelineConfig = rockefellerFile.pipelines[argv.pipeline];
     for(const phaseConfig of pipelineConfig.phases) {
         const phaseDeployer = phaseDeployers[phaseConfig.type];
         const questions = phaseDeployer.getSecretQuestions(phaseConfig);

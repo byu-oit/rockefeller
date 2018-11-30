@@ -35,11 +35,11 @@ function getBuildProjectName(phaseContext: PhaseContext<CodeBuildConfig>): strin
 }
 
 function getBuildPhaseRoleName(appName: string): string {
-    return `${appName}-WaterworksBuildPhase`;
+    return `${appName}-RockefellerBuildPhase`;
 }
 
 function getBuildPhasePolicyArn(accountId: string, appName: string): string {
-    return `arn:aws:iam::${accountId}:policy/waterworks/${getBuildPhaseRoleName(appName)}`;
+    return `arn:aws:iam::${accountId}:policy/rockefeller/${getBuildPhaseRoleName(appName)}`;
 }
 
 async function createBuildPhaseServiceRole(accountConfig: AccountConfig, appName: string): Promise<AWS.IAM.Role | null> {
