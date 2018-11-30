@@ -74,7 +74,7 @@ describe('input module', () => {
             });
             const saveYamlFileStub = sandbox.stub(util, 'saveYamlFile').returns(true);
 
-            const config = await input.getPipelineConfigForDeploy({_: ['']});
+            const config = await input.getPipelineParameters({_: ['']});
             expect(config.accountConfigsPath).to.equal(accountConfigsPath);
             expect(config.pipelineToDeploy).to.equal(pipelineName);
             expect(accountName).to.equal(accountName);

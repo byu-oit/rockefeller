@@ -15,7 +15,7 @@
  *
  */
 import { expect } from 'chai';
-import { AccountConfig } from 'handel/src/datatypes';
+import { AccountConfig } from 'handel-extension-api';
 import * as sinon from 'sinon';
 import * as codebuildCalls from '../../../src/aws/codebuild-calls';
 import * as iamCalls from '../../../src/aws/iam-calls';
