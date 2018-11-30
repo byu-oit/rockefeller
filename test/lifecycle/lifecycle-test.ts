@@ -15,16 +15,16 @@
  *
  */
 import { expect } from 'chai';
-import { AccountConfig } from 'handel/src/datatypes';
+import { AccountConfig } from 'handel-extension-api';
 import * as sinon from 'sinon';
 import * as codepipelineCalls from '../../src/aws/codepipeline-calls';
 import * as util from '../../src/common/util';
-import { HandelCodePipelineFile, PhaseConfig, PhaseContext, PhaseDeployer, PhaseDeployers, PhaseSecrets } from '../../src/datatypes/index';
+import { PhaseConfig, PhaseContext, PhaseDeployer, PhaseDeployers, PhaseSecrets, WaterworksFile } from '../../src/datatypes/index';
 import * as lifecycle from '../../src/lifecycle';
 
 describe('lifecycle module', () => {
     let sandbox: sinon.SinonSandbox;
-    let handelCodePipelineFile: HandelCodePipelineFile;
+    let waterworksFile: WaterworksFile;
     let phaseDeployers: PhaseDeployers;
     let accountConfig: AccountConfig;
 
@@ -33,7 +33,7 @@ describe('lifecycle module', () => {
 
         accountConfig = util.loadYamlFile(`${__dirname}/../example-account-config.yml`);
 
-        handelCodePipelineFile = {
+        waterworksFile = {
             version: 1,
             name: 'FakePipeline',
             pipelines: {
@@ -81,13 +81,13 @@ describe('lifecycle module', () => {
     describe('checkPhases', () => {
         it('should execute check on each phase', () => {
             const error = 'SomeError';
-            handelCodePipelineFile.pipelines.prd.phases = [{
+            waterworksFile.pipelines.prd.phases = [{
                 type: 'github',
                 name: 'Source'
             }];
             phaseDeployers.github.check = (phaseConfig: PhaseConfig) => [ error ];
 
-            const pipelineErrors = lifecycle.checkPhases(handelCodePipelineFile, phaseDeployers);
+            const pipelineErrors = lifecycle.checkPhases(waterworksFile, phaseDeployers);
             expect(pipelineErrors.prd.length).to.equal(1);
             expect(pipelineErrors.prd[0]).to.equal(error);
         });
@@ -95,39 +95,39 @@ describe('lifecycle module', () => {
 
     describe('validatePipelineSpec', () => {
         it('should require the name field', () => {
-            delete handelCodePipelineFile.name;
+            delete waterworksFile.name;
 
-            const errors = lifecycle.validatePipelineSpec(handelCodePipelineFile);
+            const errors = lifecycle.validatePipelineSpec(waterworksFile);
             expect(errors.length).to.equal(1);
             expect(errors[0]).to.contain(`'name' field is required`);
         });
 
         it('should return an error if no pipelines are specified', () => {
-            handelCodePipelineFile.pipelines = {};
+            waterworksFile.pipelines = {};
 
-            const errors = lifecycle.validatePipelineSpec(handelCodePipelineFile);
+            const errors = lifecycle.validatePipelineSpec(waterworksFile);
             expect(errors.length).to.equal(1);
             expect(errors[0]).to.contain('You must specify at least one or more pipelines');
         });
 
         it('should return an error if no phases are specified in a pipeline', () => {
-            delete handelCodePipelineFile.pipelines.prd.phases;
+            delete waterworksFile.pipelines.prd.phases;
 
-            const errors = lifecycle.validatePipelineSpec(handelCodePipelineFile);
+            const errors = lifecycle.validatePipelineSpec(waterworksFile);
             expect(errors.length).to.equal(1);
             expect(errors[0]).to.contain('You must specify at least one or more phases');
         });
 
         it('should return an error if there are fewer than 2 phases in the pipeline',  () => {
-            handelCodePipelineFile.pipelines.prd.phases = [];
+            waterworksFile.pipelines.prd.phases = [];
 
-            const errors = lifecycle.validatePipelineSpec(handelCodePipelineFile);
+            const errors = lifecycle.validatePipelineSpec(waterworksFile);
             expect(errors.length).to.equal(1);
             expect(errors[0]).to.contain('You must specify at least two phases');
         });
 
         it('should return an error if the first phase is not a github or codecommit phase', () => {
-            handelCodePipelineFile.pipelines.prd.phases = [
+            waterworksFile.pipelines.prd.phases = [
                 {
                     type: 'codebuild',
                     name: 'Build'
@@ -138,13 +138,13 @@ describe('lifecycle module', () => {
                 }
             ];
 
-            const errors = lifecycle.validatePipelineSpec(handelCodePipelineFile);
+            const errors = lifecycle.validatePipelineSpec(waterworksFile);
             expect(errors.length).to.equal(1);
             expect(errors[0]).to.contain(`must be a 'github' or 'codecommit' phase`);
         });
 
         it('should return an error if the second phase is not a codebuild phase', () => {
-            handelCodePipelineFile.pipelines.prd.phases = [
+            waterworksFile.pipelines.prd.phases = [
                 {
                     type: 'github',
                     name: 'Build'
@@ -155,29 +155,29 @@ describe('lifecycle module', () => {
                 }
             ];
 
-            const errors = lifecycle.validatePipelineSpec(handelCodePipelineFile);
+            const errors = lifecycle.validatePipelineSpec(waterworksFile);
             expect(errors.length).to.equal(1);
             expect(errors[0]).to.contain('must be a codebuild phase');
         });
 
         it('should return an error if any phase does not have a type field', () => {
-            delete handelCodePipelineFile.pipelines.prd.phases[2].type;
+            delete waterworksFile.pipelines.prd.phases[2].type;
 
-            const errors = lifecycle.validatePipelineSpec(handelCodePipelineFile);
+            const errors = lifecycle.validatePipelineSpec(waterworksFile);
             expect(errors.length).to.equal(1);
             expect(errors[0]).to.contain('must specify a type');
         });
 
         it('should return an error if any phase does not have a name field', () => {
-            delete handelCodePipelineFile.pipelines.prd.phases[1].name;
+            delete waterworksFile.pipelines.prd.phases[1].name;
 
-            const errors = lifecycle.validatePipelineSpec(handelCodePipelineFile);
+            const errors = lifecycle.validatePipelineSpec(waterworksFile);
             expect(errors.length).to.equal(1);
             expect(errors[0]).to.contain('must specify a name');
         });
 
         it('should work if there are no errors', () => {
-            const errors = lifecycle.validatePipelineSpec(handelCodePipelineFile);
+            const errors = lifecycle.validatePipelineSpec(waterworksFile);
             expect(errors.length).to.equal(0);
         });
     });
@@ -186,10 +186,10 @@ describe('lifecycle module', () => {
         it('should prompt for secrets from each phase', async () => {
             phaseDeployers.github.getSecretsForPhase = (phaseConfig: PhaseConfig) => Promise.resolve({ githubSecret: 'mysecret' });
             phaseDeployers.codebuild.getSecretsForPhase = (phaseConfig: PhaseConfig) => Promise.resolve({ codeBuildSecret: 'mysecret' });
-            handelCodePipelineFile = util.loadYamlFile(`${__dirname}/handel-codepipeline-example.yml`);
+            waterworksFile = util.loadYamlFile(`${__dirname}/handel-codepipeline-example.yml`);
             const pipelineToDeploy = 'dev';
 
-            const results = await lifecycle.getPhaseSecrets(phaseDeployers, handelCodePipelineFile, pipelineToDeploy);
+            const results = await lifecycle.getPhaseSecrets(phaseDeployers, waterworksFile, pipelineToDeploy);
             expect(results.length).to.equal(2);
             expect(results[0].githubSecret).to.equal('mysecret');
             expect(results[1].codeBuildSecret).to.equal('mysecret');
@@ -208,11 +208,11 @@ describe('lifecycle module', () => {
                 actions: []
             };
             phaseDeployers.codebuild.deployPhase = (phaseContext, acctConfig) => Promise.resolve(codebuildPhaseResult);
-            handelCodePipelineFile = util.loadYamlFile(`${__dirname}/handel-codepipeline-example.yml`);
+            waterworksFile = util.loadYamlFile(`${__dirname}/handel-codepipeline-example.yml`);
             const pipelineToDeploy = 'dev';
             const phaseSecrets: PhaseSecrets = {};
 
-            const phases = await lifecycle.deployPhases(phaseDeployers, handelCodePipelineFile, pipelineToDeploy, accountConfig, [phaseSecrets], 'FakeBucketName');
+            const phases = await lifecycle.deployPhases(phaseDeployers, waterworksFile, pipelineToDeploy, accountConfig, [phaseSecrets], 'FakeBucketName');
             expect(phases.length).to.equal(2);
             expect(phases[0]).to.deep.equal(githubPhaseResult);
             expect(phases[1]).to.deep.equal(codebuildPhaseResult);
@@ -220,7 +220,7 @@ describe('lifecycle module', () => {
     });
 
     describe('deployPipeline', () => {
-        handelCodePipelineFile = util.loadYamlFile(`${__dirname}/handel-codepipeline-example.yml`);
+        waterworksFile = util.loadYamlFile(`${__dirname}/handel-codepipeline-example.yml`);
         const pipelineToDeploy = 'dev';
         const pipelinePhases: AWS.CodePipeline.StageDeclaration[] = [];
 
@@ -228,7 +228,7 @@ describe('lifecycle module', () => {
             const getPipelineStub = sandbox.stub(codepipelineCalls, 'getPipeline').returns(Promise.resolve(null));
             const createPipelineStub = sandbox.stub(codepipelineCalls, 'createPipeline').returns(Promise.resolve({}));
 
-            const pipeline = await lifecycle.deployPipeline(handelCodePipelineFile, pipelineToDeploy, accountConfig, pipelinePhases, 'FakeBucket');
+            const pipeline = await lifecycle.deployPipeline(waterworksFile, pipelineToDeploy, accountConfig, pipelinePhases, 'FakeBucket');
             expect(pipeline).to.deep.equal({});
             expect(getPipelineStub.callCount).to.equal(1);
             expect(createPipelineStub.callCount).to.equal(1);
@@ -238,7 +238,7 @@ describe('lifecycle module', () => {
             const getPipelineStub = sandbox.stub(codepipelineCalls, 'getPipeline').returns(Promise.resolve({}));
             const updatePipelineStub = sandbox.stub(codepipelineCalls, 'updatePipeline').returns(Promise.resolve({}));
 
-            const pipeline = await lifecycle.deployPipeline(handelCodePipelineFile, pipelineToDeploy, accountConfig, pipelinePhases, 'FakeBucket');
+            const pipeline = await lifecycle.deployPipeline(waterworksFile, pipelineToDeploy, accountConfig, pipelinePhases, 'FakeBucket');
             expect(pipeline).to.deep.equal({});
             expect(getPipelineStub.callCount).to.equal(1);
             expect(updatePipelineStub.callCount).to.equal(1);
@@ -249,10 +249,10 @@ describe('lifecycle module', () => {
         it('should delete each phase in the pipeline', async () => {
             phaseDeployers.github.deletePhase = (phaseContext, acctConfig) => Promise.resolve(true);
             phaseDeployers.codebuild.deletePhase = (phaseContext, acctConfig) => Promise.resolve(true);
-            handelCodePipelineFile = util.loadYamlFile(`${__dirname}/handel-codepipeline-example.yml`);
+            waterworksFile = util.loadYamlFile(`${__dirname}/handel-codepipeline-example.yml`);
             const pipelineToDelete = 'dev';
 
-            const results = await lifecycle.deletePhases(phaseDeployers, handelCodePipelineFile, pipelineToDelete, accountConfig, 'FakeBucket');
+            const results = await lifecycle.deletePhases(phaseDeployers, waterworksFile, pipelineToDelete, accountConfig, 'FakeBucket');
             expect(results.length).to.equal(2);
             expect(results[0]).to.deep.equal(true);
             expect(results[1]).to.deep.equal(true);
@@ -270,24 +270,24 @@ describe('lifecycle module', () => {
 
     describe('addWebhooks', () => {
         it('should put webhook and register it', async () => {
-            handelCodePipelineFile = util.loadYamlFile(`${__dirname}/handel-codepipeline-example.yml`);
+            waterworksFile = util.loadYamlFile(`${__dirname}/handel-codepipeline-example.yml`);
             const addWebhookStub = sandbox.stub().resolves();
             phaseDeployers.github.addWebhook = addWebhookStub;
             const pipelineToDeploy = 'dev';
 
-            await lifecycle.addWebhooks(phaseDeployers, handelCodePipelineFile, pipelineToDeploy, accountConfig, 'FakeBucket');
+            await lifecycle.addWebhooks(phaseDeployers, waterworksFile, pipelineToDeploy, accountConfig, 'FakeBucket');
             expect(addWebhookStub.callCount).to.equal(1);
         });
     });
 
     describe('removeWebhooks', () => {
         it('should deregister webhook and delete it', async () => {
-            handelCodePipelineFile = util.loadYamlFile(`${__dirname}/handel-codepipeline-example.yml`);
+            waterworksFile = util.loadYamlFile(`${__dirname}/handel-codepipeline-example.yml`);
             const removeWebhookStub = sandbox.stub().resolves();
             phaseDeployers.github.removeWebhook = removeWebhookStub;
             const pipelineToDeploy = 'dev';
 
-            await lifecycle.removeWebhooks(phaseDeployers, handelCodePipelineFile, pipelineToDeploy, accountConfig, 'FakeBucket');
+            await lifecycle.removeWebhooks(phaseDeployers, waterworksFile, pipelineToDeploy, accountConfig, 'FakeBucket');
             expect(removeWebhookStub.callCount).to.equal(1);
         });
     });
