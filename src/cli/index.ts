@@ -122,6 +122,8 @@ export async function deployAction(rockefellerFile: RockefellerFile, argv: Parse
         await lifecycle.addWebhooks(phaseDeployers, rockefellerFile, pipelineName, accountConfig, codePipelineBucketName);
         winston.info(`Finished creating pipeline in ${accountConfig.account_id}`);
     } catch(err) {
+        // when the account_config_path is not correct, then this block of code is hit.
+        // Have it ask again instead
         winston.error(`Error setting up Rockefeller: ${err.message}`);
         winston.error(err);
         process.exit(1);

@@ -20,6 +20,7 @@ import { ParsedArgs } from 'minimist';
 import * as os from 'os';
 import * as util from '../common/util';
 import { PhaseSecrets } from '../datatypes/index';
+import * as winston from 'winston';
 
 const ROCKEFELLER_DIR = `${os.homedir()}/.rockefeller`;
 const ROCKEFELLER_CONFIG = `${ROCKEFELLER_DIR}/config.yml`;
@@ -29,22 +30,22 @@ interface ConfigParamCache {
 }
 
 function inquirerValidateFilePath(filePath: string): string | boolean {
-    if(!fs.existsSync(filePath)) {
+    if (!fs.existsSync(filePath)) {
         return `File path doesn't exist: ${filePath}`;
     }
     return true;
 }
 
 function ensureConfigDirExists(): void {
-    if(!fs.existsSync(ROCKEFELLER_DIR)) {
+    if (!fs.existsSync(ROCKEFELLER_DIR)) {
         fs.mkdirSync(ROCKEFELLER_DIR);
     }
 }
 
 function getConfigParam(paramName: string): string | null {
-    if(fs.existsSync(ROCKEFELLER_CONFIG)) {
+    if (fs.existsSync(ROCKEFELLER_CONFIG)) {
         const rockefellerConfig = util.loadYamlFile(ROCKEFELLER_CONFIG) as ConfigParamCache;
-        if(rockefellerConfig[paramName]) {
+        if (rockefellerConfig[paramName]) {
             return rockefellerConfig[paramName];
         }
     }
@@ -52,7 +53,7 @@ function getConfigParam(paramName: string): string | null {
 }
 
 function cacheConfigParam(paramName: string, paramValue: string) {
-    if(fs.existsSync(ROCKEFELLER_CONFIG)) {
+    if (fs.existsSync(ROCKEFELLER_CONFIG)) {
         const rockefellerConfig = util.loadYamlFile(ROCKEFELLER_CONFIG) as ConfigParamCache;
         rockefellerConfig[paramName] = paramValue;
         util.saveYamlFile(ROCKEFELLER_CONFIG, rockefellerConfig);
@@ -64,9 +65,23 @@ function cacheConfigParam(paramName: string, paramValue: string) {
     }
 }
 
+// function clearCacheConfigParam(paramName: string, paramValue: string) {
+//     // This is the base code to make the cache, modify it to empty the cache if needed
+//     if(fs.existsSync(ROCKEFELLER_CONFIG)) {
+//         const rockefellerConfig = util.loadYamlFile(ROCKEFELLER_CONFIG) as ConfigParamCache;
+//         rockefellerConfig[paramName] = paramValue;
+//         util.saveYamlFile(ROCKEFELLER_CONFIG, rockefellerConfig);
+//     }
+//     else {
+//         const rockefellerConfig: ConfigParamCache = {};
+//         rockefellerConfig[paramName] = paramValue;
+//         util.saveYamlFile(ROCKEFELLER_CONFIG, rockefellerConfig);
+//     }
+// }
+
 function askAccountConfigsQuestionIfNeeded(configs: PhaseSecrets, questions: inquirer.Question[]) {
     const accountConfigsPath = getConfigParam('account_configs_path');
-    if(accountConfigsPath) {
+    if (accountConfigsPath) {
         configs.accountConfigsPath = accountConfigsPath;
     }
     else {
@@ -78,6 +93,24 @@ function askAccountConfigsQuestionIfNeeded(configs: PhaseSecrets, questions: inq
         });
     }
 }
+
+// function askAccountConfigsQuestionAgainIfNeeded(configs: PhaseSecrets, questions: inquirer.Question[]) {
+//     const accountConfigsPath = getConfigParam('account_configs_path');
+//     if(accountConfigsPath) {
+//         configs.accountConfigsPath = accountConfigsPath;
+//     }
+//     else {
+//         // clear the cache for the path
+//         clearCacheConfigParam('account_configs_path', '');
+//         // reask the questions to get the path to the rockefeller configs
+//         questions.push({
+//             type: 'input',
+//             name: 'accountConfigsPath',
+//             message: 'Your account_configs_path not found in rockefeller config directory. Please enter the path to the directory containing the Handel account configuration files',
+//             validate: inquirerValidateFilePath
+//         });
+//     }
+// }
 
 export async function getPipelineConfigForDelete(argv: ParsedArgs): Promise<PhaseSecrets> {
     const secrets: PhaseSecrets = {};
@@ -95,13 +128,27 @@ export async function getPipelineConfigForDelete(argv: ParsedArgs): Promise<Phas
         }
     ];
 
-    if(argv.pipeline && argv.account_name) {
-        if(!fs.existsSync(ROCKEFELLER_DIR)) {
+    if (argv.pipeline && argv.account_name) {
+        if (!fs.existsSync(ROCKEFELLER_DIR)) {
             throw new Error('Rockefeller config directory must exist when deploying with CLI params');
         }
         const accountConfigsPath = getConfigParam('account_configs_path');
-        if(accountConfigsPath) {
-            secrets.accountConfigsPath = accountConfigsPath;
+        if (accountConfigsPath) {
+            try {
+                secrets.accountConfigsPath = accountConfigsPath;
+            } catch {
+                winston.info('The account_configs_path not found in Rockefeller config directory')
+                // reasks the question for the account config path
+                askAccountConfigsQuestionIfNeeded(secrets, questions);
+                const answers = await inquirer.prompt(questions);
+                if (answers.accountConfigsPath) {
+                    secrets.accountConfigsPath = answers.accountConfigsPath;
+                    // caches the new account_confoig path
+                    cacheConfigParam('account_configs_path', answers.accountConfigsPath);
+                }
+                secrets.pipelineToDelete = answers.pipelineToDelete;
+                secrets.accountName = answers.accountName;
+            }
         } else {
             throw new Error('account_configs_path not found in Rockefeller config directory');
         }
@@ -113,7 +160,7 @@ export async function getPipelineConfigForDelete(argv: ParsedArgs): Promise<Phas
         askAccountConfigsQuestionIfNeeded(secrets, questions);
 
         const answers = await inquirer.prompt(questions);
-        if(answers.accountConfigsPath) {
+        if (answers.accountConfigsPath) {
             secrets.accountConfigsPath = answers.accountConfigsPath;
             cacheConfigParam('account_configs_path', answers.accountConfigsPath);
         }
@@ -141,16 +188,30 @@ export async function getPipelineParameters(argv: ParsedArgs): Promise<PhaseSecr
     ];
 
     // Get account configs
-    if(argv.pipeline && argv.account_name && argv.secrets) {
+    if (argv.pipeline && argv.account_name && argv.secrets) {
         // TODO - ALLOW PEOPLE TO CLEAR THIS CACHE? Another option is to ask again if we can't find the account config in the path they gave
-        if(!fs.existsSync(ROCKEFELLER_DIR)) {
+        if (!fs.existsSync(ROCKEFELLER_DIR)) {
             throw new Error('Rockefeller config directory must exist when deploying with CLI params');
         }
         const accountConfigsPath = getConfigParam('account_configs_path');
-        if(accountConfigsPath) {
-            secrets.accountConfigsPath = accountConfigsPath;
+        if (accountConfigsPath) {
+            try {
+                secrets.accountConfigsPath = accountConfigsPath;
+            } catch {
+                winston.info('The account_configs_path not found in Rockefeller config directory')
+                // reasks the question for the account config path
+                askAccountConfigsQuestionIfNeeded(secrets, questions);
+                const answers = await inquirer.prompt(questions);
+                if (answers.accountConfigsPath) {
+                    secrets.accountConfigsPath = answers.accountConfigsPath;
+                    // caches the new account_confoig path
+                    cacheConfigParam('account_configs_path', answers.accountConfigsPath);
+                }
+                secrets.pipelineToDelete = answers.pipelineToDelete;
+                secrets.accountName = answers.accountName;
+            }
         } else {
-            throw new Error('account_configs_path not found in Rockefeller config directory');
+            throw new Error('account_configs_path not found in Rockefeller config directory, and the new path you entered is also invalid');
         }
         secrets.pipelineToDeploy = argv.pipeline;
         secrets.accountName = argv.account_name;
@@ -161,7 +222,7 @@ export async function getPipelineParameters(argv: ParsedArgs): Promise<PhaseSecr
         askAccountConfigsQuestionIfNeeded(secrets, questions);
 
         const answers = await inquirer.prompt(questions);
-        if(answers.accountConfigsPath) {
+        if (answers.accountConfigsPath) {
             secrets.accountConfigsPath = answers.accountConfigsPath;
             cacheConfigParam('account_configs_path', answers.accountConfigsPath);
         }
