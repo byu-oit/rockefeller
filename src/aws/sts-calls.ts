@@ -26,7 +26,7 @@ export async function validateLoggedIn(): Promise<void> {
     }
 }
 
-async function getAccountId(): Promise<string|null> {
+export async function getAccountId(): Promise<string|null> {
     try {
         const getResponse = await getCallerIdentity({});
         return getResponse.Account!;

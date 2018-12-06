@@ -102,7 +102,7 @@ export async function deployAction(rockefellerFile: RockefellerFile, argv: Parse
         }
         const pipelineParameters = await input.getPipelineParameters(argv);
         const accountName = pipelineParameters.accountName;
-        const accountConfig = util.getAccountConfig(pipelineParameters.accountConfigsPath, accountName);
+        const accountConfig = await util.getAccountConfig(pipelineParameters.accountConfigsPath, accountName);
         winston.debug(`Using account config: ${JSON.stringify(accountConfig)}`);
 
         await validateCredentials(accountConfig);
@@ -148,7 +148,7 @@ export async function deleteAction(rockefellerFile: RockefellerFile, argv: Parse
 
     const pipelineConfig = await input.getPipelineConfigForDelete(argv);
     const accountName = pipelineConfig.accountName;
-    const accountConfig = util.getAccountConfig(pipelineConfig.accountConfigsPath, accountName);
+    const accountConfig = await util.getAccountConfig(pipelineConfig.accountConfigsPath, accountName);
 
     await validateCredentials(accountConfig);
     AWS.config.update({ region: accountConfig.region });

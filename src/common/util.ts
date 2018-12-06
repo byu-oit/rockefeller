@@ -17,8 +17,10 @@
 import * as archiver from 'archiver';
 import * as fs from 'fs';
 import * as handlebars from 'handlebars';
+import * as inquirer from 'inquirer';
 import * as yaml from 'js-yaml';
 import * as path from 'path';
+import * as defaultVpc from '../default-vpc';
 
 /**
  * Takes the given directory path and zips it up and stores it
@@ -44,14 +46,27 @@ export function zipDirectoryToFile(directoryPath: string, filePath: string): Pro
     });
 }
 
-export function getAccountConfig(accountConfigsPath: string, accountId: string) {
+export async function getAccountConfig(accountConfigsPath: string, accountId: string) {
     const accountConfigFilePath = `${accountConfigsPath}/${accountId}.yml`;
     if(fs.existsSync(accountConfigFilePath)) {
         const accountConfig = exports.loadYamlFile(accountConfigFilePath);
         return accountConfig;
     }
     else {
-        throw new Error(`Expected account config file at ${accountConfigFilePath} for ${accountId}`);
+        const newQuestion: inquirer.Question[] = [
+            {
+                type: 'input',
+                name: 'checkIfWantDefault',
+                message: 'Your account configs path was not valid. Do you want to use the defult VPC? If so, type "Yes"'
+            }
+        ];
+
+        const newAnswers = await inquirer.prompt(newQuestion);
+        if (newAnswers.checkIfWantDefault === 'Yes') {
+            await defaultVpc.useDefaultVpc();
+        } else {
+            throw new Error(`Expected account config file at ${accountConfigFilePath} for ${accountId}`);
+        }
     }
 }
 
