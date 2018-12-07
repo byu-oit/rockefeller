@@ -89,7 +89,7 @@ describe('handel phase module', () => {
             const getProjectStub = sandbox.stub(codebuildCalls, 'getProject').resolves(null);
             const createProjectStub = sandbox.stub(codebuildCalls, 'createProject').resolves({});
 
-            const phase = await handelDelete.deployPhase(phaseContext, accountConfig);
+            const phase = await handelDelete.deployPhase(phaseContext);
             expect(createOrUpdateRoleStub.callCount).to.equal(1);
             expect(getProjectStub.callCount).to.equal(1);
             expect(createProjectStub.callCount).to.equal(1);
@@ -100,7 +100,7 @@ describe('handel phase module', () => {
             const getProjectStub = sandbox.stub(codebuildCalls, 'getProject').resolves({});
             const updateProjectStub = sandbox.stub(codebuildCalls, 'updateProject').resolves({});
 
-            const phase = await handelDelete.deployPhase(phaseContext, accountConfig);
+            const phase = await handelDelete.deployPhase(phaseContext);
             expect(createOrUpdateRoleStub.callCount).to.equal(1);
             expect(getProjectStub.callCount).to.equal(1);
             expect(updateProjectStub.callCount).to.equal(1);
@@ -111,7 +111,7 @@ describe('handel phase module', () => {
         it('should delete the codebuild project', async () => {
             const deleteProjectStub = sandbox.stub(codebuildCalls, 'deleteProject').resolves(true);
 
-            const result = await handelDelete.deletePhase(phaseContext, accountConfig);
+            const result = await handelDelete.deletePhase(phaseContext);
             expect(result).to.equal(true);
             expect(deleteProjectStub.callCount).to.equal(1);
         });

@@ -45,7 +45,7 @@ export function getSecretQuestions(phaseConfig: PhaseConfig): PhaseSecretQuestio
     return [];
 }
 
-export function deployPhase(phaseContext: PhaseContext<CodeCommitConfig>, accountConfig: AccountConfig): Promise<AWS.CodePipeline.StageDeclaration> {
+export function deployPhase(phaseContext: PhaseContext<CodeCommitConfig>): Promise<AWS.CodePipeline.StageDeclaration> {
     winston.info(`Creating source phase '${phaseContext.phaseName}'`);
     const branch = phaseContext.params.branch || 'master';
 
@@ -76,7 +76,7 @@ export function deployPhase(phaseContext: PhaseContext<CodeCommitConfig>, accoun
     });
 }
 
-export function deletePhase(phaseContext: PhaseContext<CodeCommitConfig>, accountConfig: AccountConfig): Promise<boolean> {
+export function deletePhase(phaseContext: PhaseContext<CodeCommitConfig>): Promise<boolean> {
     winston.info(`Nothing to delete for source phase '${phaseContext.phaseName}'`);
     return Promise.resolve(true); // Nothing to delete
 }

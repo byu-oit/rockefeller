@@ -95,7 +95,7 @@ describe('github phase module', () => {
 
     describe('deployPhase', () => {
         it('should return the github phase config', () => {
-            return github.deployPhase(phaseContext, accountConfig)
+            return github.deployPhase(phaseContext)
                 .then(phase => {
                     expect(phase.name).to.equal(phaseContext.phaseName);
                 });
@@ -104,7 +104,7 @@ describe('github phase module', () => {
 
     describe('deletePhase', () => {
         it('should do nothing', () => {
-            return github.deletePhase(phaseContext, accountConfig)
+            return github.deletePhase(phaseContext)
                 .then(result => {
                     expect(result).to.deep.equal({});
                 });

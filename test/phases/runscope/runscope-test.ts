@@ -98,7 +98,7 @@ describe('runscope module', () => {
                 }]
             }));
 
-            const phaseSpec = await runscope.deployPhase(phaseContext, accountConfig);
+            const phaseSpec = await runscope.deployPhase(phaseContext);
             expect(getStackStub.callCount).to.equal(1);
             expect(createLambdaRoleStub.callCount).to.equal(1);
             expect(uploadDirectoryStub.callCount).to.equal(1);
@@ -116,7 +116,7 @@ describe('runscope module', () => {
                 }]
             }));
 
-            const phaseSpec = await runscope.deployPhase(phaseContext, accountConfig);
+            const phaseSpec = await runscope.deployPhase(phaseContext);
             expect(getStackStub.callCount).to.equal(1);
             expect(phaseSpec.name).to.equal(phaseContext.phaseName);
             expect(phaseSpec.actions[0]!.configuration!.FunctionName).to.equal(functionName);
@@ -125,7 +125,7 @@ describe('runscope module', () => {
 
     describe('deletePhase', () => {
         it('should do nothing', async () => {
-            const result = await runscope.deletePhase(phaseContext, accountConfig);
+            const result = await runscope.deletePhase(phaseContext);
             expect(result).to.equal(true);
         });
     });

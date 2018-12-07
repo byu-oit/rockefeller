@@ -43,7 +43,7 @@ async function createDeletePhaseServiceRole(accountId: string): Promise<AWS.IAM.
     return iamCalls.createOrUpdateRoleAndPolicy(roleName, ['codebuild.amazonaws.com'], policyArn, policyDocument);
 }
 
-async function createDeletePhaseCodeBuildProject(phaseContext: PhaseContext<HandelDeleteConfig>, accountConfig: AccountConfig): Promise<AWS.CodeBuild.Project> {
+async function createDeletePhaseCodeBuildProject(phaseContext: PhaseContext<HandelDeleteConfig>): Promise<AWS.CodeBuild.Project> {
     const {appName, pipelineName, phaseName} = phaseContext;
     const deleteProjectName = getDeleteProjectName(phaseContext);
     const deletePhaseRole = await createDeletePhaseServiceRole(phaseContext.accountConfig.account_id);
@@ -52,7 +52,7 @@ async function createDeletePhaseCodeBuildProject(phaseContext: PhaseContext<Hand
     }
     const handelDeleteEnvVars = {
         ENVS_TO_DELETE: phaseContext.params.environments_to_delete.join(','),
-        HANDEL_ACCOUNT_CONFIG: new Buffer(JSON.stringify(accountConfig)).toString('base64')
+        HANDEL_ACCOUNT_CONFIG: new Buffer(JSON.stringify(phaseContext.accountConfig)).toString('base64')
     };
     const handelDeleteImage = 'aws/codebuild/nodejs:6.3.1';
     const handelDeleteBuildSpecPath = `${__dirname}/delete-buildspec.yml`;
@@ -138,12 +138,12 @@ export function getSecretQuestions(phaseConfig: PhaseConfig): PhaseSecretQuestio
     return [];
 }
 
-export async function deployPhase(phaseContext: PhaseContext<HandelDeleteConfig>, accountConfig: AccountConfig): Promise<AWS.CodePipeline.StageDeclaration> {
-    const codeBuildProject = await createDeletePhaseCodeBuildProject(phaseContext, accountConfig);
+export async function deployPhase(phaseContext: PhaseContext<HandelDeleteConfig>): Promise<AWS.CodePipeline.StageDeclaration> {
+    const codeBuildProject = await createDeletePhaseCodeBuildProject(phaseContext);
     return getCodePipelinePhaseSpec(phaseContext);
 }
 
-export async function deletePhase(phaseContext: PhaseContext<HandelDeleteConfig>, accountConfig: AccountConfig): Promise<boolean> {
+export async function deletePhase(phaseContext: PhaseContext<HandelDeleteConfig>): Promise<boolean> {
     const codeBuildProjectName = getDeleteProjectName(phaseContext);
     winston.info(`Delete CodeBuild project for '${codeBuildProjectName}'`);
     await codeBuildCalls.deleteProject(codeBuildProjectName);

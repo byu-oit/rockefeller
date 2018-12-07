@@ -89,18 +89,18 @@ export function getSecretQuestions(phaseConfig: PhaseConfig): PhaseSecretQuestio
     return result;
 }
 
-export async function deployPhase(phaseContext: PhaseContext<PhaseConfig>, accountConfig: AccountConfig): Promise<AWS.CodePipeline.StageDeclaration> {
+export async function deployPhase(phaseContext: PhaseContext<PhaseConfig>): Promise<AWS.CodePipeline.StageDeclaration> {
     winston.info(`Creating runscope phase '${phaseContext.phaseName}'`);
     let stack = await cloudformationCalls.getStack(STACK_NAME);
     if (!stack) {
         winston.info(`Creating Lambda function for Runscope tests`);
-        const role = await deployersCommon.createLambdaCodePipelineRole(accountConfig.account_id);
+        const role = await deployersCommon.createLambdaCodePipelineRole(phaseContext.accountConfig.account_id);
         if(!role) {
             throw new Error(`Runscope Lambda role could not be created`);
         }
         const directoryToUpload = `${__dirname}/runscope-code`;
         const s3FileName = 'rockefeller/runscope';
-        const s3BucketName = `codepipeline-${accountConfig.region}-${accountConfig.account_id}`;
+        const s3BucketName = `codepipeline-${phaseContext.accountConfig.region}-${phaseContext.accountConfig.account_id}`;
         const s3ObjectInfo = await deployersCommon.uploadDirectoryToBucket(directoryToUpload, s3FileName, s3BucketName);
         const template = util.loadFile(`${__dirname}/runscope-lambda.yml`);
         if(!template) {
@@ -123,7 +123,7 @@ export async function deployPhase(phaseContext: PhaseContext<PhaseConfig>, accou
     return getRunscopePhaseSpec(phaseContext, functionName);
 }
 
-export function deletePhase(phaseContext: PhaseContext<PhaseConfig>, accountConfig: AccountConfig): Promise<boolean> {
+export function deletePhase(phaseContext: PhaseContext<PhaseConfig>): Promise<boolean> {
     winston.info(`Nothing to delete for runscope phase '${phaseContext.phaseName}'`);
     return Promise.resolve(true); // Nothing to delete
 }
