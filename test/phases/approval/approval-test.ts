@@ -89,14 +89,14 @@ describe('approval module', () => {
 
     describe('deployPhase', () => {
         it('should return the configuration for the phase', async () => {
-            const phaseSpec = await approval.deployPhase(phaseContext, accountConfig);
+            const phaseSpec = await approval.deployPhase(phaseContext);
             expect(phaseSpec.name).to.equal(phaseContext.phaseName);
         });
     });
 
     describe('deletePhase', () => {
         it('should do nothing', async () => {
-            const result = await approval.deletePhase(phaseContext, accountConfig);
+            const result = await approval.deletePhase(phaseContext);
             expect(result).to.deep.equal(true);
         });
     });

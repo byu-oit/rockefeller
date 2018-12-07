@@ -85,14 +85,14 @@ describe('cloudformation module', () => {
 
     describe('deployPhase', () => {
         it('should return the configuration for the phase', async () => {
-            const phaseSpec = await cloudformation.deployPhase(phaseContext, accountConfig);
+            const phaseSpec = await cloudformation.deployPhase(phaseContext);
             expect(phaseSpec.name).to.equal(phaseContext.phaseName);
         });
     });
 
     describe('deletePhase', () => {
         it('should do nothing', async () => {
-            const result = await cloudformation.deletePhase(phaseContext, accountConfig);
+            const result = await cloudformation.deletePhase(phaseContext);
             expect(result).to.deep.equal(true);
         });
     });

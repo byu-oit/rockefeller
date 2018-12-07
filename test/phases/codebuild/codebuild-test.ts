@@ -94,7 +94,7 @@ describe('codebuild phase module', () => {
             const getProjectStub = sandbox.stub(codebuildCalls, 'getProject').resolves(null);
             const createProjectStub = sandbox.stub(codebuildCalls, 'createProject').resolves({});
 
-            const phase = await codebuild.deployPhase(phaseContext, accountConfig);
+            const phase = await codebuild.deployPhase(phaseContext);
             expect(createOrUpdateRoleStub.callCount).to.equal(1);
             expect(getProjectStub.callCount).to.equal(1);
             expect(createProjectStub.callCount).to.equal(1);
@@ -105,7 +105,7 @@ describe('codebuild phase module', () => {
             const getProjectStub = sandbox.stub(codebuildCalls, 'getProject').resolves({});
             const updateProjectStub = sandbox.stub(codebuildCalls, 'updateProject').resolves({});
 
-            const phase = await codebuild.deployPhase(phaseContext, accountConfig);
+            const phase = await codebuild.deployPhase(phaseContext);
             expect(createOrUpdateRoleStub.callCount).to.equal(1);
             expect(getProjectStub.callCount).to.equal(1);
             expect(updateProjectStub.callCount).to.equal(1);
@@ -119,7 +119,7 @@ describe('codebuild phase module', () => {
             const deletePolicyStub = sandbox.stub(iamCalls, 'deletePolicy').resolves(true);
             const detachPolicyStub = sandbox.stub(iamCalls, 'detachPolicyFromRole').resolves(true);
 
-            const result = await codebuild.deletePhase(phaseContext, accountConfig);
+            const result = await codebuild.deletePhase(phaseContext);
             expect(result).to.equal(true);
             expect(deleteRoleStub.callCount).to.equal(1);
             expect(deletePolicyStub.callCount).to.equal(1);

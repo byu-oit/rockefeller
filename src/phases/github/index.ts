@@ -67,7 +67,7 @@ export function getSecretQuestions(phaseConfig: PhaseConfig): PhaseSecretQuestio
     return result;
 }
 
-export function deployPhase(phaseContext: PhaseContext<GithubConfig>, accountConfig: AccountConfig) {
+export function deployPhase(phaseContext: PhaseContext<GithubConfig>) {
     winston.info(`Creating source phase '${phaseContext.phaseName}'`);
     const branch = phaseContext.params.branch || 'master';
 
@@ -101,7 +101,7 @@ export function deployPhase(phaseContext: PhaseContext<GithubConfig>, accountCon
     });
 }
 
-export function deletePhase(phaseContext: PhaseContext<GithubConfig>, accountConfig: AccountConfig) {
+export function deletePhase(phaseContext: PhaseContext<GithubConfig>) {
     winston.info(`Nothing to delete for source phase '${phaseContext.phaseName}'`);
     return Promise.resolve({}); // Nothing to delete
 }

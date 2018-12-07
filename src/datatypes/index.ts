@@ -45,11 +45,10 @@ export interface PhaseDeployer {
     check(phaseConfig: PhaseConfig): string[];
     getSecretsForPhase(phaseConfig: PhaseConfig): Promise<PhaseSecrets>;
     getSecretQuestions(phaseConfig: PhaseConfig): PhaseSecretQuestion;
-    deployPhase(phaseContext: PhaseContext<PhaseConfig>, accountConfig: AccountConfig): Promise<AWS.CodePipeline.StageDeclaration>;
-    deletePhase(phaseContext: PhaseContext<PhaseConfig>, accountConfig: AccountConfig): Promise<boolean>;
+    deployPhase(phaseContext: PhaseContext<PhaseConfig>): Promise<AWS.CodePipeline.StageDeclaration>;
+    deletePhase(phaseContext: PhaseContext<PhaseConfig>): Promise<boolean>;
     addWebhook?(phaseContext: PhaseContext<PhaseConfig>): Promise<void>;
     removeWebhook?(phaseContext: PhaseContext<PhaseConfig>): Promise<void>;
-
 }
 
 export interface RockefellerFile {

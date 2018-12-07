@@ -105,7 +105,7 @@ async function deletePypiPhaseServiceRole(accountId: string, appName: string): P
     return true;
 }
 
-async function createPypiPhaseCodeBuildProject(phaseContext: PhaseContext<PypiConfig>, accountConfig: AccountConfig): Promise<boolean> {
+async function createPypiPhaseCodeBuildProject(phaseContext: PhaseContext<PypiConfig>): Promise<boolean> {
     const {appName, pipelineName, phaseName} = phaseContext;
     const pypiProjectName = getPypiProjectName(phaseContext);
     const buildspecParams = {
@@ -214,16 +214,16 @@ export function getSecretQuestions(phaseConfig: PhaseConfig): PhaseSecretQuestio
     return result;
 }
 
-export async function deployPhase(phaseContext: PhaseContext<PypiConfig>, accountConfig: AccountConfig): Promise<AWS.CodePipeline.StageDeclaration> {
-    await createPypiPhaseCodeBuildProject(phaseContext, accountConfig);
+export async function deployPhase(phaseContext: PhaseContext<PypiConfig>): Promise<AWS.CodePipeline.StageDeclaration> {
+    await createPypiPhaseCodeBuildProject(phaseContext);
     return getCodePipelinePhaseSpec(phaseContext);
 }
 
-export async function deletePhase(phaseContext: PhaseContext<PypiConfig>, accountConfig: AccountConfig): Promise<boolean> {
+export async function deletePhase(phaseContext: PhaseContext<PypiConfig>): Promise<boolean> {
     const codeBuildProjectName = getPypiProjectName(phaseContext);
     winston.info(`Delete CodeBuild project for '${codeBuildProjectName}'`);
     await codeBuildCalls.deleteProject(codeBuildProjectName);
     await ssmCalls.deleteParameters(getPypiParameterNames(phaseContext));
-    await deletePypiPhaseServiceRole(accountConfig.account_id, phaseContext.appName);
+    await deletePypiPhaseServiceRole(phaseContext.accountConfig.account_id, phaseContext.appName);
     return true;
 }

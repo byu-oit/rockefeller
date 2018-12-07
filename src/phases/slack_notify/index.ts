@@ -100,19 +100,19 @@ export function getSecretQuestions(phaseConfig: PhaseConfig): PhaseSecretQuestio
     return result;
 }
 
-export async function deployPhase(phaseContext: PhaseContext<SlackNotifyConfig>, accountConfig: AccountConfig): Promise<AWS.CodePipeline.StageDeclaration> {
+export async function deployPhase(phaseContext: PhaseContext<SlackNotifyConfig>): Promise<AWS.CodePipeline.StageDeclaration> {
     winston.info(`Creating slack_notify phase '${phaseContext.phaseName}'`);
 
     let stack = await cloudformationCalls.getStack(STACK_NAME);
     if (!stack) {
         winston.info(`Creating Lambda function for Slack notifications`);
-        const role = await deployersCommon.createLambdaCodePipelineRole(accountConfig.account_id);
+        const role = await deployersCommon.createLambdaCodePipelineRole(phaseContext.accountConfig.account_id);
         if(!role) {
             throw new Error(`Could not create role for Slack Notify lambda`);
         }
         const directoryToUpload = `${__dirname}/slack-notify-code`;
         const s3FileName = 'rockefeller/slackNotifyLambda';
-        const s3BucketName = `codepipeline-${accountConfig.region}-${accountConfig.account_id}`;
+        const s3BucketName = `codepipeline-${phaseContext.accountConfig.region}-${phaseContext.accountConfig.account_id}`;
         const s3ObjectInfo = await deployersCommon.uploadDirectoryToBucket(directoryToUpload, s3FileName, s3BucketName);
         const template = util.loadFile(`${__dirname}/lambda.yml`);
         if(!template) {
@@ -135,7 +135,7 @@ export async function deployPhase(phaseContext: PhaseContext<SlackNotifyConfig>,
     return getSlackNotifyPhaseSpec(phaseContext, functionName);
 }
 
-export function deletePhase(phaseContext: PhaseContext<SlackNotifyConfig>, accountConfig: AccountConfig): Promise<boolean> {
+export function deletePhase(phaseContext: PhaseContext<SlackNotifyConfig>): Promise<boolean> {
     winston.info(`Nothing to delete for slack_notify phase '${phaseContext.phaseName}'`);
     return Promise.resolve(true); // Nothing to delete
 }
