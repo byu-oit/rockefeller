@@ -30,7 +30,7 @@ interface PipelineCheckErrors {
     [pipelineName: string]: string[];
 }
 
-function deployPhase(phaseContext: PhaseContext<PhaseConfig>, phaseDeployers: PhaseDeployers, accountConfig: AccountConfig): Promise<AWS.CodePipeline.StageDeclaration> {
+function deployPhase(phaseContext: PhaseContext<PhaseConfig>, phaseDeployers: PhaseDeployers): Promise<AWS.CodePipeline.StageDeclaration> {
     return Promise.resolve()
         .then(async () => {
             const phaseDeployer = phaseDeployers[phaseContext.phaseType];
@@ -39,7 +39,7 @@ function deployPhase(phaseContext: PhaseContext<PhaseConfig>, phaseDeployers: Ph
             }
             else {
                 // TODO - Remove second accountConfig parameter (it is already inside phaseContext)
-                return await phaseDeployer.deployPhase(phaseContext, accountConfig);
+                return await phaseDeployer.deployPhase(phaseContext);
             }
         });
 }
@@ -182,7 +182,7 @@ export function deployPhases(phaseDeployers: PhaseDeployers,
         const phase = pipelinePhases[i];
         // TODO - Revisit how these PhaseContext objects look
         const phaseContext = getPhaseContext(rockefellerFile, codePipelineBucketName, pipelineName, accountConfig, phase, phasesSecrets[i]);
-        deployPromises.push(deployPhase(phaseContext, phaseDeployers, accountConfig));
+        deployPromises.push(deployPhase(phaseContext, phaseDeployers));
     }
 
     return Promise.all(deployPromises);
@@ -218,7 +218,7 @@ export function deletePhases(phaseDeployers: PhaseDeployers,
         const phaseDeloyer = phaseDeployers[phaseType];
 
         const phaseContext = getPhaseContext(rockefellerFile, codePipelineBucketName, pipelineName, accountConfig, pipelinePhase, {}); // Don't need phase secrets for delete
-        deletePromises.push(phaseDeloyer.deletePhase(phaseContext, accountConfig));
+        deletePromises.push(phaseDeloyer.deletePhase(phaseContext));
     }
 
     return Promise.all(deletePromises);

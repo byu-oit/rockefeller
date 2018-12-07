@@ -85,14 +85,14 @@ describe('github phase module', () => {
 
     describe('deployPhase', () => {
         it('should create the codebuild project and return the phase config', async () => {
-            const phase = await codecommit.deployPhase(phaseContext, accountConfig);
+            const phase = await codecommit.deployPhase(phaseContext);
             expect(phase.name).to.equal(phaseContext.phaseName);
         });
     });
 
     describe('deletePhase', () => {
         it('should do nothing', async () => {
-            const result = await codecommit.deletePhase(phaseContext, accountConfig);
+            const result = await codecommit.deletePhase(phaseContext);
             expect(result).to.equal(true);
         });
     });

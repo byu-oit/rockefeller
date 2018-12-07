@@ -18,6 +18,7 @@ function printGeneralUsage(): void {
     check -- Checks the contents of your Rockefeller file for errors.
     deploy -- Deploys the given pipeline from your Rockefeller file.
     delete -- Deletes the given pipeline from your AWS account.
+    redefine-path -- Allows you to redefine your account_configs_path
     list-required-secrets -- List required secrets for all phases. Requires the --pipeline parameter.`;
     printAndExit(usageMsg);
 }
@@ -60,6 +61,9 @@ export function run() {
             break;
         case 'list-required-secrets':
             cli.listSecretsAction(rockefellerFile, argv);
+            break;
+        case 'redefine-path':
+            cli.redefineAccountConfigsPath(argv);
             break;
         default:
             printGeneralUsage();

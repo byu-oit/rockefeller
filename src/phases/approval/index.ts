@@ -58,12 +58,12 @@ export function getSecretQuestions(phaseConfig: PhaseConfig): PhaseSecretQuestio
     return [];
 }
 
-export async function deployPhase(phaseContext: PhaseContext<PhaseConfig>, accountConfig: AccountConfig): Promise<AWS.CodePipeline.StageDeclaration> {
+export async function deployPhase(phaseContext: PhaseContext<PhaseConfig>): Promise<AWS.CodePipeline.StageDeclaration> {
     winston.info(`Creating manual approval phase '${phaseContext.phaseName}'`);
     return getApprovalPhaseSpec(phaseContext);
 }
 
-export async function deletePhase(phaseContext: PhaseContext<PhaseConfig>, accountConfig: AccountConfig): Promise<boolean> {
+export async function deletePhase(phaseContext: PhaseContext<PhaseConfig>): Promise<boolean> {
     winston.info(`Nothing to delete for source phase '${phaseContext.phaseName}'`);
     return true; // Nothing to delete
 }
