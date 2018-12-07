@@ -15,9 +15,14 @@
  *
  */
 import * as AWS from 'aws-sdk';
-import { AccountConfig } from 'handel-extension-api';
 import * as winston from 'winston';
-import { PhaseConfig, PhaseContext, PhaseSecretQuestion, PhaseSecrets } from '../../datatypes/index';
+import {
+    PhaseConfig,
+    PhaseContext,
+    PhaseDeployer,
+    PhaseSecretQuestion,
+    PhaseSecrets
+} from '../../datatypes/index';
 
 function getApprovalPhaseSpec(phaseContext: PhaseContext<PhaseConfig>): AWS.CodePipeline.StageDeclaration {
     return {
@@ -42,28 +47,31 @@ function getApprovalPhaseSpec(phaseContext: PhaseContext<PhaseConfig>): AWS.Code
 
 // TODO - Document PhaseDeploy contract in user documentation (part of extensions work)
 
-// TODO - Make check optional
-export function check(phaseConfig: PhaseConfig): string[] {
-    // No required parameters
-    return [];
-}
+export class Phase implements PhaseDeployer {
+    // TODO - Make check optional
+    public check(phaseConfig: PhaseConfig): string[] {
+        // No required parameters
+        return [];
+    }
 
-// TODO - Make getSecretsForPhase optional
-export async function getSecretsForPhase(phaseConfig: PhaseConfig): Promise<PhaseSecrets> {
-    return {};
-}
+    // TODO - Make getSecretsForPhase optional
+    public async getSecretsForPhase(phaseConfig: PhaseConfig): Promise<PhaseSecrets> {
+        return {};
+    }
 
-// TODO - Make getSecretQuestions optional
-export function getSecretQuestions(phaseConfig: PhaseConfig): PhaseSecretQuestion[] {
-    return [];
-}
+    // TODO - Make getSecretQuestions optional
+    public getSecretQuestions(phaseConfig: PhaseConfig): PhaseSecretQuestion[] {
+        return [];
+    }
 
-export async function deployPhase(phaseContext: PhaseContext<PhaseConfig>): Promise<AWS.CodePipeline.StageDeclaration> {
-    winston.info(`Creating manual approval phase '${phaseContext.phaseName}'`);
-    return getApprovalPhaseSpec(phaseContext);
-}
+    public async deployPhase(phaseContext: PhaseContext<PhaseConfig>): Promise<AWS.CodePipeline.StageDeclaration> {
+        winston.info(`Creating manual approval phase '${phaseContext.phaseName}'`);
+        return getApprovalPhaseSpec(phaseContext);
+    }
 
-export async function deletePhase(phaseContext: PhaseContext<PhaseConfig>): Promise<boolean> {
-    winston.info(`Nothing to delete for source phase '${phaseContext.phaseName}'`);
-    return true; // Nothing to delete
+    public async deletePhase(phaseContext: PhaseContext<PhaseConfig>): Promise<boolean> {
+        winston.info(`Nothing to delete for source phase '${phaseContext.phaseName}'`);
+        return true; // Nothing to delete
+    }
+
 }

@@ -59,17 +59,17 @@ export function getAccountConfig(accountConfigsPath: string, accountId: string) 
  * Reads all the phase deployer modules out of the 'phases' directory
  */
 // TODO - IMPLEMENT EXTENSIONS
-export function getPhaseDeployers(): any {
+export async function getPhaseDeployers(): Promise<any> {
     const deployers: any = {}; // TODO - Need to change this to something more constrained
     const servicesPath = path.join(__dirname, '../phases');
     const serviceTypes = fs.readdirSync(servicesPath);
-    serviceTypes.forEach(serviceType => {
+    for(const serviceType of serviceTypes) {
         const servicePath = `${servicesPath}/${serviceType}`;
         if(fs.lstatSync(servicePath).isDirectory()) {
-            deployers[serviceType] = require(servicePath);
+            const phaseModule = await import(servicePath);
+            deployers[serviceType] = new phaseModule.Phase();
         }
-    });
-
+    }
     return deployers;
 }
 

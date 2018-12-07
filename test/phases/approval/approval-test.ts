@@ -19,10 +19,11 @@ import { AccountConfig } from 'handel-extension-api';
 import * as inquirer from 'inquirer';
 import * as sinon from 'sinon';
 import { PhaseConfig, PhaseContext } from '../../../src/datatypes/index';
-import * as approval from '../../../src/phases/approval';
+import { Phase } from '../../../src/phases/approval';
 
 describe('approval module', () => {
     let sandbox: sinon.SinonSandbox;
+    let approval: Phase;
 
     const accountConfig: AccountConfig = {
         account_id: '111111111111',
@@ -63,6 +64,7 @@ describe('approval module', () => {
     );
 
     beforeEach(() => {
+        approval = new Phase();
         sandbox = sinon.sandbox.create();
     });
 

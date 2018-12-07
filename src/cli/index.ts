@@ -91,7 +91,7 @@ async function validateCredentials(accountConfig: AccountConfig) {
 export async function deployAction(rockefellerFile: RockefellerFile, argv: ParsedArgs) {
     await stsCalls.validateLoggedIn();
     configureLogger(argv);
-    const phaseDeployers = util.getPhaseDeployers();
+    const phaseDeployers = await util.getPhaseDeployers();
     validateRockefellerFile(rockefellerFile);
     checkPhases(rockefellerFile, phaseDeployers);
     const nonInteractive = (argv.pipeline && argv.account_name && argv.secrets);
@@ -132,9 +132,9 @@ export async function deployAction(rockefellerFile: RockefellerFile, argv: Parse
     }
 }
 
-export function checkAction(rockefellerFile: RockefellerFile, argv: ParsedArgs) {
+export async function checkAction(rockefellerFile: RockefellerFile, argv: ParsedArgs) {
     configureLogger(argv);
-    const phaseDeployers = util.getPhaseDeployers();
+    const phaseDeployers = await util.getPhaseDeployers();
     lifecycle.validatePipelineSpec(rockefellerFile);
     checkPhases(rockefellerFile, phaseDeployers);
     winston.info('No errors were found in your Handel-CodePipeline file');
@@ -146,7 +146,7 @@ export async function deleteAction(rockefellerFile: RockefellerFile, argv: Parse
         winston.info('Welcome to the Handel CodePipeline deletion wizard');
     }
 
-    const phaseDeployers = util.getPhaseDeployers();
+    const phaseDeployers = await util.getPhaseDeployers();
 
     const pipelineConfig = await input.getPipelineConfigForDelete(argv);
     const accountName = pipelineConfig.accountName;
@@ -178,7 +178,7 @@ export async function listSecretsAction(rockefellerFile: RockefellerFile, argv: 
     if (!rockefellerFile.pipelines[argv.pipeline]) {
         throw new Error(`The pipeline '${argv.pipeline}' you specified doesn't exist in your Handel-Codepipeline file`);
     }
-    const phaseDeployers = util.getPhaseDeployers();
+    const phaseDeployers = await util.getPhaseDeployers();
     const phaseDeployerSecretsQuestions: PhaseSecretQuestion[] = [];
     const pipelineConfig = rockefellerFile.pipelines[argv.pipeline];
     for (const phaseConfig of pipelineConfig.phases) {
