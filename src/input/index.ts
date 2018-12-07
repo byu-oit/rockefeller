@@ -175,6 +175,7 @@ export async function getPipelineParameters(argv: ParsedArgs): Promise<PhaseSecr
 // This function allows you to redefine your account configs path, should it be invalid
 export async function redefineAccountConfigsPathSetup(argv: ParsedArgs): Promise<string> {
     // Setup
+    ensureConfigDirExists();
     const secrets: PhaseSecrets = {};
     const questions: inquirer.Question[] = [
         {
@@ -184,10 +185,6 @@ export async function redefineAccountConfigsPathSetup(argv: ParsedArgs): Promise
             validate: inquirerValidateFilePath
         }
     ];
-
-    // Ask for the new file path
-    askAccountConfigsQuestionIfNeeded(secrets, questions);
-
     const answers = await inquirer.prompt(questions);
 
     // Overwrite the old file path
