@@ -31,6 +31,7 @@ export async function useDefaultVpc(): Promise<AccountConfig> {
     ];
 
     const answers = await inquirer.prompt(questions);
+    // I cannot figure out what the format should be for the region, and so I cannot test to know what should be entered
     const region: string = answers.regionToDeployTo;
     const validRegion = await isValidRegion(region);
 
