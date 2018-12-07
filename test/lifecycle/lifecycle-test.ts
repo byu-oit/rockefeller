@@ -61,15 +61,15 @@ describe('lifecycle module', () => {
                 check: (phaseConfig: PhaseConfig) => { throw new Error('NOT IMPLEMENTED'); },
                 getSecretsForPhase: (phaseConfig: PhaseConfig) => { throw new Error('NOT IMPLEMENTED'); },
                 getSecretQuestions: (phaseConfig: PhaseConfig) => { throw new Error('NOT IMPLEMENTED'); },
-                deployPhase: (phaseContext: PhaseContext<PhaseConfig>, accountConfigFile: AccountConfig) => { throw new Error('NOT IMPLEMENTED'); },
-                deletePhase: (phaseContext: PhaseContext<PhaseConfig>, accountConfigFile: AccountConfig) => { throw new Error('NOT IMPLEMENTED'); }
+                deployPhase: (phaseContext: PhaseContext<PhaseConfig>) => { throw new Error('NOT IMPLEMENTED'); },
+                deletePhase: (phaseContext: PhaseContext<PhaseConfig>) => { throw new Error('NOT IMPLEMENTED'); }
             },
             codebuild: {
                 check: (phaseConfig: PhaseConfig) => { throw new Error('NOT IMPLEMENTED'); },
                 getSecretsForPhase: (phaseConfig: PhaseConfig) => { throw new Error('NOT IMPLEMENTED'); },
                 getSecretQuestions: (phaseConfig: PhaseConfig) => { throw new Error('NOT IMPLEMENTED'); },
-                deployPhase: (phaseContext: PhaseContext<PhaseConfig>, accountConfigFile: AccountConfig) => { throw new Error('NOT IMPLEMENTED'); },
-                deletePhase: (phaseContext: PhaseContext<PhaseConfig>, accountConfigFile: AccountConfig) => { throw new Error('NOT IMPLEMENTED'); }
+                deployPhase: (phaseContext: PhaseContext<PhaseConfig>) => { throw new Error('NOT IMPLEMENTED'); },
+                deletePhase: (phaseContext: PhaseContext<PhaseConfig>) => { throw new Error('NOT IMPLEMENTED'); }
             }
         };
     });
@@ -202,12 +202,12 @@ describe('lifecycle module', () => {
                 name: 'FakeName',
                 actions: []
             };
-            phaseDeployers.github.deployPhase = (phaseContext, acctConfig) => Promise.resolve(githubPhaseResult);
+            phaseDeployers.github.deployPhase = (phaseContext) => Promise.resolve(githubPhaseResult);
             const codebuildPhaseResult = {
                 name: 'FakeName',
                 actions: []
             };
-            phaseDeployers.codebuild.deployPhase = (phaseContext, acctConfig) => Promise.resolve(codebuildPhaseResult);
+            phaseDeployers.codebuild.deployPhase = (phaseContext) => Promise.resolve(codebuildPhaseResult);
             rockefellerFile = util.loadYamlFile(`${__dirname}/handel-codepipeline-example.yml`);
             const pipelineToDeploy = 'dev';
             const phaseSecrets: PhaseSecrets = {};
@@ -247,8 +247,8 @@ describe('lifecycle module', () => {
 
     describe('deletePhases', () => {
         it('should delete each phase in the pipeline', async () => {
-            phaseDeployers.github.deletePhase = (phaseContext, acctConfig) => Promise.resolve(true);
-            phaseDeployers.codebuild.deletePhase = (phaseContext, acctConfig) => Promise.resolve(true);
+            phaseDeployers.github.deletePhase = (phaseContext) => Promise.resolve(true);
+            phaseDeployers.codebuild.deletePhase = (phaseContext) => Promise.resolve(true);
             rockefellerFile = util.loadYamlFile(`${__dirname}/handel-codepipeline-example.yml`);
             const pipelineToDelete = 'dev';
 
