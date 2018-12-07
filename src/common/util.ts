@@ -51,7 +51,7 @@ export function getAccountConfig(accountConfigsPath: string, accountId: string) 
         return accountConfig;
     }
     else {
-        throw new Error(`Expected account config file at ${accountConfigFilePath} for ${accountId}`);
+        throw new Error(`Expected account config file at ${accountConfigFilePath} for ${accountId}. If the path ${accountConfigFilePath} is not the path you want, run the command 'rockefeller redefine-path'`);
     }
 }
 
