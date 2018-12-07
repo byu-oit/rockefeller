@@ -106,7 +106,7 @@ export async function deployPhase(phaseContext: PhaseContext<SlackNotifyConfig>)
     let stack = await cloudformationCalls.getStack(STACK_NAME);
     if (!stack) {
         winston.info(`Creating Lambda function for Slack notifications`);
-        const role = await deployersCommon.createLambdaCodePipelineRole(phaseContext.accountConfig.account_id);
+        const role = await deployersCommon.createLambdaCodePipelineRole(phaseContext.accountConfig.account_id, phaseContext.accountConfig.region);
         if(!role) {
             throw new Error(`Could not create role for Slack Notify lambda`);
         }
