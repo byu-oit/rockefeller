@@ -81,13 +81,13 @@ export function getSecretQuestions(phaseConfig: PhaseConfig): PhaseSecretQuestio
     return [];
 }
 
-export function deployPhase(phaseContext: PhaseContext<CloudformationConfig>, accountConfig: AccountConfig) {
+export function deployPhase(phaseContext: PhaseContext<CloudformationConfig>) {
     winston.info(`Creating CloudFormation phase '${phaseContext.phaseName}'`);
 
-    return Promise.resolve(getCloudFormationPhaseSpec(phaseContext, accountConfig));
+    return Promise.resolve(getCloudFormationPhaseSpec(phaseContext, phaseContext.accountConfig));
 }
 
-export function deletePhase(phaseContext: PhaseContext<CloudformationConfig>, accountConfig: AccountConfig) {
+export function deletePhase(phaseContext: PhaseContext<CloudformationConfig>) {
     winston.info(`Nothing to delete for CloudFormation phase '${phaseContext.phaseName}'`);
     return Promise.resolve(true); // Nothing to delete
 }

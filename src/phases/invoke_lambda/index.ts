@@ -74,7 +74,7 @@ export function getSecretQuestions(phaseConfig: PhaseConfig): PhaseSecretQuestio
     return [];
 }
 
-export function deployPhase(phaseContext: PhaseContext<InvokeLambdaConfig>, accountConfig: AccountConfig): Promise<AWS.CodePipeline.StageDeclaration> {
+export function deployPhase(phaseContext: PhaseContext<InvokeLambdaConfig>): Promise<AWS.CodePipeline.StageDeclaration> {
     winston.info(`Creating Invoke Lambda phase '${phaseContext.phaseName}'`);
 
     return new Promise((resolve, reject) => {
@@ -82,7 +82,7 @@ export function deployPhase(phaseContext: PhaseContext<InvokeLambdaConfig>, acco
     });
 }
 
-export function deletePhase(phaseContext: PhaseContext<InvokeLambdaConfig>, accountConfig: AccountConfig): Promise<boolean> {
+export function deletePhase(phaseContext: PhaseContext<InvokeLambdaConfig>): Promise<boolean> {
     winston.info(`Nothing to delete for Invoke Lambda phase '${phaseContext.phaseName}'`);
     return Promise.resolve(true); // Nothing to delete
 }

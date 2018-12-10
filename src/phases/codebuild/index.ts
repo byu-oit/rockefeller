@@ -195,15 +195,15 @@ export function getSecretQuestions(phaseConfig: PhaseConfig): PhaseSecretQuestio
     return [];
 }
 
-export async function deployPhase(phaseContext: PhaseContext<CodeBuildConfig>, accountConfig: AccountConfig): Promise<AWS.CodePipeline.StageDeclaration> {
+export async function deployPhase(phaseContext: PhaseContext<CodeBuildConfig>): Promise<AWS.CodePipeline.StageDeclaration> {
     await createBuildPhaseCodeBuildProject(phaseContext);
     return getCodePipelinePhaseSpec(phaseContext);
 }
 
-export async function deletePhase(phaseContext: PhaseContext<CodeBuildConfig>, accountConfig: AccountConfig): Promise<boolean> {
+export async function deletePhase(phaseContext: PhaseContext<CodeBuildConfig>): Promise<boolean> {
     const codeBuildProjectName = getBuildProjectName(phaseContext);
     winston.info(`Deleting CodeBuild project '${codeBuildProjectName}'`);
     await codeBuildCalls.deleteProject(codeBuildProjectName);
-    await deleteBuildPhaseServiceRole(accountConfig.account_id, phaseContext.appName);
+    await deleteBuildPhaseServiceRole(phaseContext.accountConfig.account_id, phaseContext.appName);
     return true;
 }

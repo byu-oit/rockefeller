@@ -109,7 +109,7 @@ describe('slack_notify module', () => {
                 }]
             }));
 
-            const phaseSpec = await slackNotify.deployPhase(phaseContext, accountConfig);
+            const phaseSpec = await slackNotify.deployPhase(phaseContext);
             expect(getStackStub.callCount).to.equal(1);
             expect(createLambdaRoleStub.callCount).to.equal(1);
             expect(uploadDirectoryStub.callCount).to.equal(1);
@@ -127,7 +127,7 @@ describe('slack_notify module', () => {
                 }]
             }));
 
-            const phaseSpec = await slackNotify.deployPhase(phaseContext, accountConfig);
+            const phaseSpec = await slackNotify.deployPhase(phaseContext);
             expect(getStackStub.callCount).to.equal(1);
             expect(phaseSpec.name).to.equal(phaseContext.phaseName);
             expect(phaseSpec.actions[0]!.configuration!.FunctionName).to.equal(functionName);
@@ -136,7 +136,7 @@ describe('slack_notify module', () => {
 
     describe('deletePhase', () => {
         it('should do nothing', async () => {
-            const result = await slackNotify.deletePhase(phaseContext, accountConfig);
+            const result = await slackNotify.deletePhase(phaseContext);
             expect(result).to.equal(true);
         });
     });

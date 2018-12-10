@@ -90,7 +90,7 @@ describe('pypi phase module', () => {
             const createProjectStub = sandbox.stub(codebuildCalls, 'createProject').resolves({});
             const putParameterStub = sandbox.stub(ssmCalls, 'putParameter').resolves({});
 
-            await pypi.deployPhase(phaseContext, accountConfig);
+            await pypi.deployPhase(phaseContext);
             expect(createOrUpdateRoleStub.callCount).to.equal(1);
             expect(getProjectStub.callCount).to.equal(1);
             expect(createProjectStub.callCount).to.equal(1);
@@ -103,7 +103,7 @@ describe('pypi phase module', () => {
             const updateProjectStub = sandbox.stub(codebuildCalls, 'updateProject').resolves({});
             const putParameterStub = sandbox.stub(ssmCalls, 'putParameter').resolves({});
 
-            await pypi.deployPhase(phaseContext, accountConfig);
+            await pypi.deployPhase(phaseContext);
             expect(createOrUpdateRoleStub.callCount).to.equal(1);
             expect(getProjectStub.callCount).to.equal(1);
             expect(updateProjectStub.callCount).to.equal(1);
@@ -119,7 +119,7 @@ describe('pypi phase module', () => {
             const deleteRoleStub = sandbox.stub(iamCalls, 'deleteRole').resolves(true);
             const deletePolicyStub = sandbox.stub(iamCalls, 'deletePolicy').resolves(true);
 
-            const result = await pypi.deletePhase(phaseContext, accountConfig);
+            const result = await pypi.deletePhase(phaseContext);
             expect(result).to.equal(true);
             expect(deleteProjectStub.callCount).to.equal(1);
             expect(detachPolicyStub.callCount).to.equal(1);

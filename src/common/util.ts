@@ -67,6 +67,7 @@ export async function getAccountConfig(accountConfigsPath: string, accountId: st
         } else {
             throw new Error(`Expected account config file at ${accountConfigFilePath} for ${accountId}`);
         }
+
     }
 }
 

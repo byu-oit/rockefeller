@@ -80,7 +80,7 @@ describe('invoke lambda module', () => {
 
     describe('deployPhase', () => {
         it('should create the role, upload the file, and create the stack when it doesnt exist', async () => {
-            const phaseSpec = await invokeLambda.deployPhase(phaseContext, accountConfig);
+            const phaseSpec = await invokeLambda.deployPhase(phaseContext);
             expect(phaseSpec.name).to.equal(phaseContext.phaseName);
             expect(phaseSpec.actions[0]!.configuration!.FunctionName).to.equal('MyFunction');
             expect(phaseSpec.actions[0]!.configuration!.UserParameters).to.equal(`{\"myParam\":\"myValue\"}`);
@@ -89,7 +89,7 @@ describe('invoke lambda module', () => {
 
     describe('deletePhase', () => {
         it('should do nothing', async () => {
-            const result = await invokeLambda.deletePhase(phaseContext, accountConfig);
+            const result = await invokeLambda.deletePhase(phaseContext);
             expect(result).to.equal(true);
         });
     });
