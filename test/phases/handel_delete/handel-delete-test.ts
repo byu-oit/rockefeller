@@ -21,16 +21,19 @@ import * as codebuildCalls from '../../../src/aws/codebuild-calls';
 import * as iamCalls from '../../../src/aws/iam-calls';
 import * as util from '../../../src/common/util';
 import { PhaseContext } from '../../../src/datatypes/index';
-import * as handelDelete from '../../../src/phases/handel_delete';
+import { Phase } from '../../../src/phases/handel_delete';
+import * as handelDeleteParams from '../../../src/phases/handel_delete';
 
 describe('handel phase module', () => {
     let sandbox: sinon.SinonSandbox;
+    let handelDelete: Phase;
     let accountConfig: AccountConfig;
-    let phaseConfig: handelDelete.HandelDeleteConfig;
-    let phaseContext: PhaseContext<handelDelete.HandelDeleteConfig>;
+    let phaseConfig: handelDeleteParams.HandelDeleteConfig;
+    let phaseContext: PhaseContext<handelDeleteParams.HandelDeleteConfig>;
 
     beforeEach(() => {
         sandbox = sinon.sandbox.create();
+        handelDelete = new Phase();
 
         accountConfig = util.loadYamlFile(`${__dirname}/../../example-account-config.yml`);
 
@@ -42,7 +45,7 @@ describe('handel phase module', () => {
             ]
         };
 
-        phaseContext = new PhaseContext<handelDelete.HandelDeleteConfig>(
+        phaseContext = new PhaseContext<handelDeleteParams.HandelDeleteConfig>(
             'myapp',
             'myphase',
             'handel_delete',

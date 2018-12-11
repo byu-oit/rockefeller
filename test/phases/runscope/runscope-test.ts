@@ -22,16 +22,18 @@ import * as cloudFormationCalls from '../../../src/aws/cloudformation-calls';
 import * as deployersCommon from '../../../src/common/deployers-common';
 import * as util from '../../../src/common/util';
 import { PhaseConfig, PhaseContext } from '../../../src/datatypes/index';
-import * as runscope from '../../../src/phases/runscope';
+import { Phase } from '../../../src/phases/runscope';
 
 describe('runscope module', () => {
     let sandbox: sinon.SinonSandbox;
+    let runscope: Phase;
     let accountConfig: AccountConfig;
     let phaseConfig: PhaseConfig;
     let phaseContext: PhaseContext<PhaseConfig>;
 
     beforeEach(() => {
         sandbox = sinon.sandbox.create();
+        runscope = new Phase();
 
         accountConfig = util.loadYamlFile(`${__dirname}/../../example-account-config.yml`);
 

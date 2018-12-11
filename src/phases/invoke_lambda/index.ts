@@ -15,9 +15,14 @@
  *
  */
 import * as AWS from 'aws-sdk';
-import { AccountConfig } from 'handel-extension-api';
 import * as winston from 'winston';
-import { PhaseConfig, PhaseContext, PhaseSecretQuestion, PhaseSecrets } from '../../datatypes/index';
+import {
+    PhaseConfig,
+    PhaseContext,
+    PhaseDeployer,
+    PhaseSecretQuestion,
+    PhaseSecrets
+} from '../../datatypes/index';
 
 export interface InvokeLambdaConfig extends PhaseConfig {
     function_name: string;
@@ -56,33 +61,35 @@ function getInvokeLambdaPhaseSpec(phaseContext: PhaseContext<InvokeLambdaConfig>
     return phaseConfig;
 }
 
-export function check(phaseConfig: InvokeLambdaConfig): string[] {
-    const errors = [];
+export class Phase implements PhaseDeployer {
+    public check(phaseConfig: InvokeLambdaConfig): string[] {
+        const errors = [];
 
-    if(!phaseConfig.function_name) {
-        errors.push(`Invoke Lambda - The 'function_name' parameter is required`);
+        if(!phaseConfig.function_name) {
+            errors.push(`Invoke Lambda - The 'function_name' parameter is required`);
+        }
+
+        return errors;
     }
 
-    return errors;
-}
+    public getSecretsForPhase(phaseConfig: InvokeLambdaConfig): Promise<PhaseSecrets> {
+        return Promise.resolve({});
+    }
 
-export function getSecretsForPhase(phaseConfig: InvokeLambdaConfig): Promise<PhaseSecrets> {
-    return Promise.resolve({});
-}
+    public getSecretQuestions(phaseConfig: PhaseConfig): PhaseSecretQuestion[] {
+        return [];
+    }
 
-export function getSecretQuestions(phaseConfig: PhaseConfig): PhaseSecretQuestion[] {
-    return [];
-}
+    public deployPhase(phaseContext: PhaseContext<InvokeLambdaConfig>): Promise<AWS.CodePipeline.StageDeclaration> {
+        winston.info(`Creating Invoke Lambda phase '${phaseContext.phaseName}'`);
 
-export function deployPhase(phaseContext: PhaseContext<InvokeLambdaConfig>): Promise<AWS.CodePipeline.StageDeclaration> {
-    winston.info(`Creating Invoke Lambda phase '${phaseContext.phaseName}'`);
+        return new Promise((resolve, reject) => {
+            resolve(getInvokeLambdaPhaseSpec(phaseContext));
+        });
+    }
 
-    return new Promise((resolve, reject) => {
-        resolve(getInvokeLambdaPhaseSpec(phaseContext));
-    });
-}
-
-export function deletePhase(phaseContext: PhaseContext<InvokeLambdaConfig>): Promise<boolean> {
-    winston.info(`Nothing to delete for Invoke Lambda phase '${phaseContext.phaseName}'`);
-    return Promise.resolve(true); // Nothing to delete
+    public deletePhase(phaseContext: PhaseContext<InvokeLambdaConfig>): Promise<boolean> {
+        winston.info(`Nothing to delete for Invoke Lambda phase '${phaseContext.phaseName}'`);
+        return Promise.resolve(true); // Nothing to delete
+    }
 }

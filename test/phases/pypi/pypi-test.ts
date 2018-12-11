@@ -23,16 +23,19 @@ import * as iamCalls from '../../../src/aws/iam-calls';
 import * as ssmCalls from '../../../src/aws/ssm-calls';
 import * as util from '../../../src/common/util';
 import { PhaseContext } from '../../../src/datatypes/index';
-import * as pypi from '../../../src/phases/pypi';
+import { Phase } from '../../../src/phases/pypi';
+import * as pypiParams from '../../../src/phases/pypi';
 
 describe('pypi phase module', () => {
     let sandbox: sinon.SinonSandbox;
+    let pypi: Phase;
     let accountConfig: AccountConfig;
-    let phaseConfig: pypi.PypiConfig;
-    let phaseContext: PhaseContext<pypi.PypiConfig>;
+    let phaseConfig: pypiParams.PypiConfig;
+    let phaseContext: PhaseContext<pypiParams.PypiConfig>;
 
     beforeEach(() => {
         sandbox = sinon.sandbox.create();
+        pypi = new Phase();
 
         accountConfig = util.loadYamlFile(`${__dirname}/../../example-account-config.yml`);
 
@@ -43,7 +46,7 @@ describe('pypi phase module', () => {
             build_image: 'FakeImage'
         };
 
-        phaseContext = new PhaseContext<pypi.PypiConfig>(
+        phaseContext = new PhaseContext<pypiParams.PypiConfig>(
             'myapp',
             'myphase',
             'pypi',

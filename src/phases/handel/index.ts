@@ -15,13 +15,18 @@
  *
  */
 import * as AWS from 'aws-sdk';
-import { AccountConfig } from 'handel-extension-api';
 import * as winston from 'winston';
 import * as codeBuildCalls from '../../aws/codebuild-calls';
 import { getPipelineProjectName } from '../../aws/codepipeline-calls';
 import * as iamCalls from '../../aws/iam-calls';
 import * as util from '../../common/util';
-import { PhaseConfig, PhaseContext, PhaseSecretQuestion, PhaseSecrets } from '../../datatypes/index';
+import {
+    PhaseConfig,
+    PhaseContext,
+    PhaseDeployer,
+    PhaseSecretQuestion,
+    PhaseSecrets
+} from '../../datatypes/index';
 
 export interface HandelConfig extends PhaseConfig {
     environments_to_deploy: string[];
@@ -122,32 +127,34 @@ function getCodePipelinePhaseSpec(phaseContext: PhaseContext<HandelConfig>): AWS
     };
 }
 
-export function check(phaseConfig: HandelConfig): string[] {
-    const errors: string[] = [];
+export class Phase implements PhaseDeployer {
+    public check(phaseConfig: HandelConfig): string[] {
+        const errors: string[] = [];
 
-    if (!phaseConfig.environments_to_deploy) {
-        errors.push(`GitHub - The 'environments_to_deploy' parameter is required`);
+        if (!phaseConfig.environments_to_deploy) {
+            errors.push(`GitHub - The 'environments_to_deploy' parameter is required`);
+        }
+
+        return errors;
     }
 
-    return errors;
-}
+    public getSecretsForPhase(phaseConfig: HandelConfig): Promise<PhaseSecrets> {
+        return Promise.resolve({});
+    }
 
-export function getSecretsForPhase(phaseConfig: HandelConfig): Promise<PhaseSecrets> {
-    return Promise.resolve({});
-}
+    public getSecretQuestions(phaseConfig: PhaseConfig): PhaseSecretQuestion[] {
+        return [];
+    }
 
-export function getSecretQuestions(phaseConfig: PhaseConfig): PhaseSecretQuestion[] {
-    return [];
-}
+    public async deployPhase(phaseContext: PhaseContext<HandelConfig>): Promise<AWS.CodePipeline.StageDeclaration> {
+        await createDeployPhaseCodeBuildProject(phaseContext);
+        return getCodePipelinePhaseSpec(phaseContext);
+    }
 
-export async function deployPhase(phaseContext: PhaseContext<HandelConfig>): Promise<AWS.CodePipeline.StageDeclaration> {
-    await createDeployPhaseCodeBuildProject(phaseContext);
-    return getCodePipelinePhaseSpec(phaseContext);
-}
-
-export async function deletePhase(phaseContext: PhaseContext<HandelConfig>): Promise<boolean> {
-    const codeBuildProjectName = getDeployProjectName(phaseContext);
-    winston.info(`Delete CodeBuild project for '${codeBuildProjectName}'`);
-    await codeBuildCalls.deleteProject(codeBuildProjectName);
-    return true;
+    public async deletePhase(phaseContext: PhaseContext<HandelConfig>): Promise<boolean> {
+        const codeBuildProjectName = getDeployProjectName(phaseContext);
+        winston.info(`Delete CodeBuild project for '${codeBuildProjectName}'`);
+        await codeBuildCalls.deleteProject(codeBuildProjectName);
+        return true;
+    }
 }

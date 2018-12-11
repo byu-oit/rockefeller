@@ -39,8 +39,8 @@ describe('util module', () => {
     });
 
     describe('getPhaseDeployers', () => {
-        it('should load and return the deployers', () => {
-            const phaseDeployers = util.getPhaseDeployers();
+        it('should load and return the deployers', async () => {
+            const phaseDeployers = await util.getPhaseDeployers();
             expect(phaseDeployers.github).to.not.equal(null);
         });
     });

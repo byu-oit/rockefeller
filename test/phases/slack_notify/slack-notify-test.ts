@@ -22,17 +22,20 @@ import * as cloudFormationCalls from '../../../src/aws/cloudformation-calls';
 import * as deployersCommon from '../../../src/common/deployers-common';
 import * as util from '../../../src/common/util';
 import { PhaseContext } from '../../../src/datatypes/index';
-import * as slackNotify from '../../../src/phases/slack_notify';
+import { Phase } from '../../../src/phases/slack_notify';
+import * as slackNotifyParams from '../../../src/phases/slack_notify';
 import { SlackNotifyConfig } from '../../../src/phases/slack_notify';
 
 describe('slack_notify module', () => {
     let sandbox: sinon.SinonSandbox;
+    let slackNotify: Phase;
     let accountConfig: AccountConfig;
-    let phaseConfig: slackNotify.SlackNotifyConfig;
-    let phaseContext: PhaseContext<slackNotify.SlackNotifyConfig>;
+    let phaseConfig: slackNotifyParams.SlackNotifyConfig;
+    let phaseContext: PhaseContext<slackNotifyParams.SlackNotifyConfig>;
 
     beforeEach(() => {
         sandbox = sinon.sandbox.create();
+        slackNotify = new Phase();
 
         accountConfig = util.loadYamlFile(`${__dirname}/../../example-account-config.yml`);
 

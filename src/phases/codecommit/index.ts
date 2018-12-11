@@ -15,68 +15,75 @@
  *
  */
 import * as AWS from 'aws-sdk';
-import { AccountConfig } from 'handel-extension-api';
 import * as winston from 'winston';
-import { PhaseConfig, PhaseContext, PhaseSecretQuestion, PhaseSecrets } from '../../datatypes/index';
+import {
+    PhaseConfig,
+    PhaseContext,
+    PhaseDeployer,
+    PhaseSecretQuestion,
+    PhaseSecrets
+} from '../../datatypes/index';
 
 export interface CodeCommitConfig extends PhaseConfig {
     repo: string;
     branch: string;
 }
 
-export function check(phaseConfig: CodeCommitConfig): string[] {
-    const errors = [];
+export class Phase implements PhaseDeployer {
+    public check(phaseConfig: CodeCommitConfig): string[] {
+        const errors = [];
 
-    if (!phaseConfig.repo) {
-        errors.push(`GitHub - The 'repo' parameter is required`);
+        if (!phaseConfig.repo) {
+            errors.push(`GitHub - The 'repo' parameter is required`);
+        }
+        if (!phaseConfig.branch) {
+            errors.push(`GitHub - The 'branch' parameter is required`);
+        }
+
+        return errors;
     }
-    if (!phaseConfig.branch) {
-        errors.push(`GitHub - The 'branch' parameter is required`);
+
+    public getSecretsForPhase(phaseConfig: CodeCommitConfig): Promise<PhaseSecrets> {
+        return Promise.resolve({});
     }
 
-    return errors;
-}
+    public getSecretQuestions(phaseConfig: PhaseConfig): PhaseSecretQuestion[] {
+        return [];
+    }
 
-export function getSecretsForPhase(phaseConfig: CodeCommitConfig): Promise<PhaseSecrets> {
-    return Promise.resolve({});
-}
+    public deployPhase(phaseContext: PhaseContext<CodeCommitConfig>): Promise<AWS.CodePipeline.StageDeclaration> {
+        winston.info(`Creating source phase '${phaseContext.phaseName}'`);
+        const branch = phaseContext.params.branch || 'master';
 
-export function getSecretQuestions(phaseConfig: PhaseConfig): PhaseSecretQuestion[] {
-    return [];
-}
+        return Promise.resolve({
+            name: phaseContext.phaseName,
+            actions: [
+                {
+                    inputArtifacts: [],
+                    name: phaseContext.phaseName,
+                    actionTypeId: {
+                        category: 'Source',
+                        owner: 'AWS',
+                        version: '1',
+                        provider: 'CodeCommit'
+                    },
+                    outputArtifacts: [
+                        {
+                            name: `Output_Source`
+                        }
+                    ],
+                    configuration: {
+                        RepositoryName: phaseContext.params.repo,
+                        BranchName: branch
+                    },
+                    runOrder: 1
+                }
+            ]
+        });
+    }
 
-export function deployPhase(phaseContext: PhaseContext<CodeCommitConfig>): Promise<AWS.CodePipeline.StageDeclaration> {
-    winston.info(`Creating source phase '${phaseContext.phaseName}'`);
-    const branch = phaseContext.params.branch || 'master';
-
-    return Promise.resolve({
-        name: phaseContext.phaseName,
-        actions: [
-            {
-                inputArtifacts: [],
-                name: phaseContext.phaseName,
-                actionTypeId: {
-                    category: 'Source',
-                    owner: 'AWS',
-                    version: '1',
-                    provider: 'CodeCommit'
-                },
-                outputArtifacts: [
-                    {
-                        name: `Output_Source`
-                    }
-                ],
-                configuration: {
-                    RepositoryName: phaseContext.params.repo,
-                    BranchName: branch
-                },
-                runOrder: 1
-            }
-        ]
-    });
-}
-
-export function deletePhase(phaseContext: PhaseContext<CodeCommitConfig>): Promise<boolean> {
-    winston.info(`Nothing to delete for source phase '${phaseContext.phaseName}'`);
-    return Promise.resolve(true); // Nothing to delete
+    public deletePhase(phaseContext: PhaseContext<CodeCommitConfig>): Promise<boolean> {
+        winston.info(`Nothing to delete for source phase '${phaseContext.phaseName}'`);
+        return Promise.resolve(true); // Nothing to delete
+    }
 }

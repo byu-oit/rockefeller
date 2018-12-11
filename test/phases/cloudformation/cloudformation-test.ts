@@ -18,17 +18,20 @@ import { expect } from 'chai';
 import { AccountConfig } from 'handel-extension-api';
 import * as sinon from 'sinon';
 import * as util from '../../../src/common/util';
-import { PhaseConfig, PhaseContext } from '../../../src/datatypes/index';
-import * as cloudformation from '../../../src/phases/cloudformation';
+import { PhaseContext } from '../../../src/datatypes/index';
+import { Phase } from '../../../src/phases/cloudformation';
+import * as cloudformationParams from '../../../src/phases/cloudformation';
 
 describe('cloudformation module', () => {
     let sandbox: sinon.SinonSandbox;
+    let cloudformation: Phase;
     let accountConfig: AccountConfig;
-    let phaseConfig: cloudformation.CloudformationConfig;
-    let phaseContext: PhaseContext<cloudformation.CloudformationConfig>;
+    let phaseConfig: cloudformationParams.CloudformationConfig;
+    let phaseContext: PhaseContext<cloudformationParams.CloudformationConfig>;
 
     beforeEach(() => {
         sandbox = sinon.sandbox.create();
+        cloudformation = new Phase();
 
         accountConfig = util.loadYamlFile(`${__dirname}/../../example-account-config.yml`);
 
@@ -39,7 +42,7 @@ describe('cloudformation module', () => {
             deploy_role: 'FakeRole'
         };
 
-        phaseContext = new PhaseContext<cloudformation.CloudformationConfig>(
+        phaseContext = new PhaseContext<cloudformationParams.CloudformationConfig>(
             'myapp',
             'myphase',
             'cloudformation',
