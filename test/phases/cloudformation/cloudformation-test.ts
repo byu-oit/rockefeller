@@ -18,17 +18,20 @@ import { expect } from 'chai';
 import { AccountConfig } from 'handel-extension-api';
 import * as sinon from 'sinon';
 import * as util from '../../../src/common/util';
-import { PhaseConfig, PhaseContext } from '../../../src/datatypes/index';
-import * as cloudformation from '../../../src/phases/cloudformation';
+import { PhaseContext } from '../../../src/datatypes/index';
+import { Phase } from '../../../src/phases/cloudformation';
+import * as cloudformationParams from '../../../src/phases/cloudformation';
 
 describe('cloudformation module', () => {
     let sandbox: sinon.SinonSandbox;
+    let cloudformation: Phase;
     let accountConfig: AccountConfig;
-    let phaseConfig: cloudformation.CloudformationConfig;
-    let phaseContext: PhaseContext<cloudformation.CloudformationConfig>;
+    let phaseConfig: cloudformationParams.CloudformationConfig;
+    let phaseContext: PhaseContext<cloudformationParams.CloudformationConfig>;
 
     beforeEach(() => {
         sandbox = sinon.sandbox.create();
+        cloudformation = new Phase();
 
         accountConfig = util.loadYamlFile(`${__dirname}/../../example-account-config.yml`);
 
@@ -39,7 +42,7 @@ describe('cloudformation module', () => {
             deploy_role: 'FakeRole'
         };
 
-        phaseContext = new PhaseContext<cloudformation.CloudformationConfig>(
+        phaseContext = new PhaseContext<cloudformationParams.CloudformationConfig>(
             'myapp',
             'myphase',
             'cloudformation',
@@ -85,14 +88,14 @@ describe('cloudformation module', () => {
 
     describe('deployPhase', () => {
         it('should return the configuration for the phase', async () => {
-            const phaseSpec = await cloudformation.deployPhase(phaseContext, accountConfig);
+            const phaseSpec = await cloudformation.deployPhase(phaseContext);
             expect(phaseSpec.name).to.equal(phaseContext.phaseName);
         });
     });
 
     describe('deletePhase', () => {
         it('should do nothing', async () => {
-            const result = await cloudformation.deletePhase(phaseContext, accountConfig);
+            const result = await cloudformation.deletePhase(phaseContext);
             expect(result).to.deep.equal(true);
         });
     });

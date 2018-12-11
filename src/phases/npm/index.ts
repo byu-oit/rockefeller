@@ -22,7 +22,13 @@ import * as codeBuildCalls from '../../aws/codebuild-calls';
 import * as iamCalls from '../../aws/iam-calls';
 import * as ssmCalls from '../../aws/ssm-calls';
 import * as util from '../../common/util';
-import { PhaseConfig, PhaseContext, PhaseSecretQuestion, PhaseSecrets } from '../../datatypes';
+import {
+    PhaseConfig,
+    PhaseContext,
+    PhaseDeployer,
+    PhaseSecretQuestion,
+    PhaseSecrets
+} from '../../datatypes';
 
 export interface NpmConfig extends PhaseConfig {
     build_image: string;
@@ -71,7 +77,7 @@ async function deleteNpmPhaseServiceRole(accountId: string, appName: string): Pr
     return true;
 }
 
-async function createNpmPhaseCodeBuildProject(phaseContext: PhaseContext<NpmConfig>, accountConfig: AccountConfig): Promise<boolean> {
+async function createNpmPhaseCodeBuildProject(phaseContext: PhaseContext<NpmConfig>): Promise<boolean> {
     const {appName, pipelineName, phaseName} = phaseContext;
     const npmProjectName = getNpmProjectName(phaseContext);
     const npmPhaseRole = await createNpmPhaseServiceRole(phaseContext.accountConfig, appName);
@@ -146,14 +152,6 @@ function getCodePipelinePhaseSpec(phaseContext: PhaseContext<NpmConfig>): AWS.Co
     };
 }
 
-export function check(phaseConfig: NpmConfig): string[] {
-    return []; // No required parameters
-}
-
-export function getSecretsForPhase(phaseConfig: NpmConfig): Promise<PhaseSecrets> {
-    return inquirer.prompt(getQuestions(phaseConfig));
-}
-
 function getQuestions(phaseConfig: PhaseConfig) {
     return [
         {
@@ -164,29 +162,39 @@ function getQuestions(phaseConfig: PhaseConfig) {
     ];
 }
 
-export function getSecretQuestions(phaseConfig: PhaseConfig): PhaseSecretQuestion[] {
-    const questions = getQuestions(phaseConfig);
-    const result: PhaseSecretQuestion[] = [];
-    questions.forEach((question) => {
-        result.push({
-            phaseName: phaseConfig.name,
-            name: question.name,
-            message: question.message
+export class Phase implements PhaseDeployer {
+    public check(phaseConfig: NpmConfig): string[] {
+        return []; // No required parameters
+    }
+
+    public getSecretsForPhase(phaseConfig: NpmConfig): Promise<PhaseSecrets> {
+        return inquirer.prompt(getQuestions(phaseConfig));
+    }
+
+    public getSecretQuestions(phaseConfig: PhaseConfig): PhaseSecretQuestion[] {
+        const questions = getQuestions(phaseConfig);
+        const result: PhaseSecretQuestion[] = [];
+        questions.forEach((question) => {
+            result.push({
+                phaseName: phaseConfig.name,
+                name: question.name,
+                message: question.message
+            });
         });
-    });
-    return result;
-}
+        return result;
+    }
 
-export async function deployPhase(phaseContext: PhaseContext<NpmConfig>, accountConfig: AccountConfig): Promise<AWS.CodePipeline.StageDeclaration> {
-    await createNpmPhaseCodeBuildProject(phaseContext, accountConfig);
-    return getCodePipelinePhaseSpec(phaseContext);
-}
+    public async deployPhase(phaseContext: PhaseContext<NpmConfig>): Promise<AWS.CodePipeline.StageDeclaration> {
+        await createNpmPhaseCodeBuildProject(phaseContext);
+        return getCodePipelinePhaseSpec(phaseContext);
+    }
 
-export async function deletePhase(phaseContext: PhaseContext<NpmConfig>, accountConfig: AccountConfig): Promise<boolean> {
-    const codeBuildProjectName = getNpmProjectName(phaseContext);
-    winston.info(`Delete CodeBuild project for '${codeBuildProjectName}'`);
-    await codeBuildCalls.deleteProject(codeBuildProjectName);
-    await ssmCalls.deleteParameter(getNpmTokenName(phaseContext));
-    await deleteNpmPhaseServiceRole(accountConfig.account_id, phaseContext.appName);
-    return true;
+    public async deletePhase(phaseContext: PhaseContext<NpmConfig>): Promise<boolean> {
+        const codeBuildProjectName = getNpmProjectName(phaseContext);
+        winston.info(`Delete CodeBuild project for '${codeBuildProjectName}'`);
+        await codeBuildCalls.deleteProject(codeBuildProjectName);
+        await ssmCalls.deleteParameter(getNpmTokenName(phaseContext));
+        await deleteNpmPhaseServiceRole(phaseContext.accountConfig.account_id, phaseContext.appName);
+        return true;
+    }
 }

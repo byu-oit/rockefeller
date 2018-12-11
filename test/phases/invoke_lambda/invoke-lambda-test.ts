@@ -19,16 +19,19 @@ import { AccountConfig } from 'handel-extension-api';
 import * as sinon from 'sinon';
 import * as util from '../../../src/common/util';
 import { PhaseContext } from '../../../src/datatypes/index';
-import * as invokeLambda from '../../../src/phases/invoke_lambda';
+import { Phase } from '../../../src/phases/invoke_lambda';
+import * as invokeLambdaParams from '../../../src/phases/invoke_lambda';
 
 describe('invoke lambda module', () => {
     let sandbox: sinon.SinonSandbox;
+    let invokeLambda: Phase;
     let accountConfig: AccountConfig;
-    let phaseConfig: invokeLambda.InvokeLambdaConfig;
-    let phaseContext: PhaseContext<invokeLambda.InvokeLambdaConfig>;
+    let phaseConfig: invokeLambdaParams.InvokeLambdaConfig;
+    let phaseContext: PhaseContext<invokeLambdaParams.InvokeLambdaConfig>;
 
     beforeEach(() => {
         sandbox = sinon.sandbox.create();
+        invokeLambda = new Phase();
 
         accountConfig = util.loadYamlFile(`${__dirname}/../../example-account-config.yml`);
 
@@ -41,7 +44,7 @@ describe('invoke lambda module', () => {
             }
         };
 
-        phaseContext = new PhaseContext<invokeLambda.InvokeLambdaConfig>(
+        phaseContext = new PhaseContext<invokeLambdaParams.InvokeLambdaConfig>(
             'myapp',
             'myphase',
             'codecommit',
@@ -80,7 +83,7 @@ describe('invoke lambda module', () => {
 
     describe('deployPhase', () => {
         it('should create the role, upload the file, and create the stack when it doesnt exist', async () => {
-            const phaseSpec = await invokeLambda.deployPhase(phaseContext, accountConfig);
+            const phaseSpec = await invokeLambda.deployPhase(phaseContext);
             expect(phaseSpec.name).to.equal(phaseContext.phaseName);
             expect(phaseSpec.actions[0]!.configuration!.FunctionName).to.equal('MyFunction');
             expect(phaseSpec.actions[0]!.configuration!.UserParameters).to.equal(`{\"myParam\":\"myValue\"}`);
@@ -89,7 +92,7 @@ describe('invoke lambda module', () => {
 
     describe('deletePhase', () => {
         it('should do nothing', async () => {
-            const result = await invokeLambda.deletePhase(phaseContext, accountConfig);
+            const result = await invokeLambda.deletePhase(phaseContext);
             expect(result).to.equal(true);
         });
     });

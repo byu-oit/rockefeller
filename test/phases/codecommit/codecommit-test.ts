@@ -19,16 +19,19 @@ import { AccountConfig } from 'handel-extension-api';
 import * as sinon from 'sinon';
 import * as util from '../../../src/common/util';
 import { PhaseContext } from '../../../src/datatypes/index';
-import * as codecommit from '../../../src/phases/codecommit';
+import { Phase } from '../../../src/phases/codecommit';
+import * as codecommitParams from '../../../src/phases/codecommit';
 
 describe('github phase module', () => {
     let sandbox: sinon.SinonSandbox;
+    let codecommit: Phase;
     let accountConfig: AccountConfig;
-    let phaseConfig: codecommit.CodeCommitConfig;
-    let phaseContext: PhaseContext<codecommit.CodeCommitConfig>;
+    let phaseConfig: codecommitParams.CodeCommitConfig;
+    let phaseContext: PhaseContext<codecommitParams.CodeCommitConfig>;
 
     beforeEach(() => {
         sandbox = sinon.sandbox.create();
+        codecommit = new Phase();
 
         accountConfig = util.loadYamlFile(`${__dirname}/../../example-account-config.yml`);
 
@@ -39,7 +42,7 @@ describe('github phase module', () => {
             branch: 'MyBranch'
         };
 
-        phaseContext = new PhaseContext<codecommit.CodeCommitConfig>(
+        phaseContext = new PhaseContext<codecommitParams.CodeCommitConfig>(
             'myapp',
             'myphase',
             'codecommit',
@@ -85,14 +88,14 @@ describe('github phase module', () => {
 
     describe('deployPhase', () => {
         it('should create the codebuild project and return the phase config', async () => {
-            const phase = await codecommit.deployPhase(phaseContext, accountConfig);
+            const phase = await codecommit.deployPhase(phaseContext);
             expect(phase.name).to.equal(phaseContext.phaseName);
         });
     });
 
     describe('deletePhase', () => {
         it('should do nothing', async () => {
-            const result = await codecommit.deletePhase(phaseContext, accountConfig);
+            const result = await codecommit.deletePhase(phaseContext);
             expect(result).to.equal(true);
         });
     });

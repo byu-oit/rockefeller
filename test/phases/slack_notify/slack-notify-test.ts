@@ -22,17 +22,20 @@ import * as cloudFormationCalls from '../../../src/aws/cloudformation-calls';
 import * as deployersCommon from '../../../src/common/deployers-common';
 import * as util from '../../../src/common/util';
 import { PhaseContext } from '../../../src/datatypes/index';
-import * as slackNotify from '../../../src/phases/slack_notify';
+import { Phase } from '../../../src/phases/slack_notify';
+import * as slackNotifyParams from '../../../src/phases/slack_notify';
 import { SlackNotifyConfig } from '../../../src/phases/slack_notify';
 
 describe('slack_notify module', () => {
     let sandbox: sinon.SinonSandbox;
+    let slackNotify: Phase;
     let accountConfig: AccountConfig;
-    let phaseConfig: slackNotify.SlackNotifyConfig;
-    let phaseContext: PhaseContext<slackNotify.SlackNotifyConfig>;
+    let phaseConfig: slackNotifyParams.SlackNotifyConfig;
+    let phaseContext: PhaseContext<slackNotifyParams.SlackNotifyConfig>;
 
     beforeEach(() => {
         sandbox = sinon.sandbox.create();
+        slackNotify = new Phase();
 
         accountConfig = util.loadYamlFile(`${__dirname}/../../example-account-config.yml`);
 
@@ -109,7 +112,7 @@ describe('slack_notify module', () => {
                 }]
             }));
 
-            const phaseSpec = await slackNotify.deployPhase(phaseContext, accountConfig);
+            const phaseSpec = await slackNotify.deployPhase(phaseContext);
             expect(getStackStub.callCount).to.equal(1);
             expect(createLambdaRoleStub.callCount).to.equal(1);
             expect(uploadDirectoryStub.callCount).to.equal(1);
@@ -127,7 +130,7 @@ describe('slack_notify module', () => {
                 }]
             }));
 
-            const phaseSpec = await slackNotify.deployPhase(phaseContext, accountConfig);
+            const phaseSpec = await slackNotify.deployPhase(phaseContext);
             expect(getStackStub.callCount).to.equal(1);
             expect(phaseSpec.name).to.equal(phaseContext.phaseName);
             expect(phaseSpec.actions[0]!.configuration!.FunctionName).to.equal(functionName);
@@ -136,7 +139,7 @@ describe('slack_notify module', () => {
 
     describe('deletePhase', () => {
         it('should do nothing', async () => {
-            const result = await slackNotify.deletePhase(phaseContext, accountConfig);
+            const result = await slackNotify.deletePhase(phaseContext);
             expect(result).to.equal(true);
         });
     });

@@ -21,17 +21,20 @@ import * as sinon from 'sinon';
 import * as codepipelineCalls from '../../../src/aws/codepipeline-calls';
 import * as util from '../../../src/common/util';
 import { PhaseConfig, PhaseContext } from '../../../src/datatypes';
-import * as github from '../../../src/phases/github';
+import { Phase } from '../../../src/phases/github';
+import * as githubParams from '../../../src/phases/github';
 import { GithubConfig } from '../../../src/phases/github';
 
 describe('github phase module', () => {
     let sandbox: sinon.SinonSandbox;
+    let github: Phase;
     let accountConfig: AccountConfig;
-    let phaseConfig: github.GithubConfig;
-    let phaseContext: PhaseContext<github.GithubConfig>;
+    let phaseConfig: githubParams.GithubConfig;
+    let phaseContext: PhaseContext<githubParams.GithubConfig>;
 
     beforeEach(() => {
         sandbox = sinon.sandbox.create();
+        github = new Phase();
 
         accountConfig = util.loadYamlFile(`${__dirname}/../../example-account-config.yml`);
 
@@ -43,7 +46,7 @@ describe('github phase module', () => {
             branch: 'master'
         };
 
-        phaseContext = new PhaseContext<github.GithubConfig>(
+        phaseContext = new PhaseContext<githubParams.GithubConfig>(
             'myapp',
             'myphase',
             'github',
@@ -95,7 +98,7 @@ describe('github phase module', () => {
 
     describe('deployPhase', () => {
         it('should return the github phase config', () => {
-            return github.deployPhase(phaseContext, accountConfig)
+            return github.deployPhase(phaseContext)
                 .then(phase => {
                     expect(phase.name).to.equal(phaseContext.phaseName);
                 });
@@ -104,9 +107,9 @@ describe('github phase module', () => {
 
     describe('deletePhase', () => {
         it('should do nothing', () => {
-            return github.deletePhase(phaseContext, accountConfig)
+            return github.deletePhase(phaseContext)
                 .then(result => {
-                    expect(result).to.deep.equal({});
+                    expect(result).to.deep.equal(true);
                 });
         });
     });

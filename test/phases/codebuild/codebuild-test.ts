@@ -24,7 +24,8 @@ import * as iamCalls from '../../../src/aws/iam-calls';
 // import * as handel from '../../../src/common/handel';
 import * as util from '../../../src/common/util';
 import {PhaseContext} from '../../../src/datatypes/index';
-import * as codebuild from '../../../src/phases/codebuild';
+import { Phase } from '../../../src/phases/codebuild';
+import * as codebuildParams from '../../../src/phases/codebuild';
 // import {HandelExtraResources} from '../../../src/phases/codebuild';
 
 chai.use(sinonChai);
@@ -32,12 +33,14 @@ const expect = chai.expect;
 
 describe('codebuild phase module', () => {
     let sandbox: sinon.SinonSandbox;
+    let codebuild: Phase;
     let accountConfig: AccountConfig;
-    let phaseConfig: codebuild.CodeBuildConfig;
-    let phaseContext: PhaseContext<codebuild.CodeBuildConfig>;
+    let phaseConfig: codebuildParams.CodeBuildConfig;
+    let phaseContext: PhaseContext<codebuildParams.CodeBuildConfig>;
 
     beforeEach(() => {
         sandbox = sinon.sandbox.create();
+        codebuild = new Phase();
 
         accountConfig = util.loadYamlFile(`${__dirname}/../../example-account-config.yml`);
 
@@ -47,7 +50,7 @@ describe('codebuild phase module', () => {
             build_image: 'MyImage'
         };
 
-        phaseContext = new PhaseContext<codebuild.CodeBuildConfig>(
+        phaseContext = new PhaseContext<codebuildParams.CodeBuildConfig>(
             'myapp',
             'myphase',
             'codebuild',
@@ -94,7 +97,7 @@ describe('codebuild phase module', () => {
             const getProjectStub = sandbox.stub(codebuildCalls, 'getProject').resolves(null);
             const createProjectStub = sandbox.stub(codebuildCalls, 'createProject').resolves({});
 
-            const phase = await codebuild.deployPhase(phaseContext, accountConfig);
+            const phase = await codebuild.deployPhase(phaseContext);
             expect(createOrUpdateRoleStub.callCount).to.equal(1);
             expect(getProjectStub.callCount).to.equal(1);
             expect(createProjectStub.callCount).to.equal(1);
@@ -105,7 +108,7 @@ describe('codebuild phase module', () => {
             const getProjectStub = sandbox.stub(codebuildCalls, 'getProject').resolves({});
             const updateProjectStub = sandbox.stub(codebuildCalls, 'updateProject').resolves({});
 
-            const phase = await codebuild.deployPhase(phaseContext, accountConfig);
+            const phase = await codebuild.deployPhase(phaseContext);
             expect(createOrUpdateRoleStub.callCount).to.equal(1);
             expect(getProjectStub.callCount).to.equal(1);
             expect(updateProjectStub.callCount).to.equal(1);
@@ -119,7 +122,7 @@ describe('codebuild phase module', () => {
             const deletePolicyStub = sandbox.stub(iamCalls, 'deletePolicy').resolves(true);
             const detachPolicyStub = sandbox.stub(iamCalls, 'detachPolicyFromRole').resolves(true);
 
-            const result = await codebuild.deletePhase(phaseContext, accountConfig);
+            const result = await codebuild.deletePhase(phaseContext);
             expect(result).to.equal(true);
             expect(deleteRoleStub.callCount).to.equal(1);
             expect(deletePolicyStub.callCount).to.equal(1);

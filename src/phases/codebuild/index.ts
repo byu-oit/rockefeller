@@ -21,7 +21,13 @@ import * as codeBuildCalls from '../../aws/codebuild-calls';
 import {CacheSpecification, CacheType} from '../../aws/codebuild-calls';
 import * as iamCalls from '../../aws/iam-calls';
 import * as util from '../../common/util';
-import { EnvironmentVariables, PhaseConfig, PhaseContext, PhaseSecretQuestion, PhaseSecrets } from '../../datatypes/index';
+import { EnvironmentVariables,
+    PhaseConfig,
+    PhaseContext,
+    PhaseDeployer,
+    PhaseSecretQuestion,
+    PhaseSecrets
+} from '../../datatypes/index';
 
 export interface CodeBuildConfig extends PhaseConfig {
     build_image: string;
@@ -170,40 +176,42 @@ function getCodePipelinePhaseSpec(phaseContext: PhaseContext<CodeBuildConfig>): 
     };
 }
 
-export function check(phaseConfig: CodeBuildConfig): string[] {
-    const errors: string[] = [];
+export class Phase implements PhaseDeployer {
+    public check(phaseConfig: CodeBuildConfig): string[] {
+        const errors: string[] = [];
 
-    if (!phaseConfig.build_image) {
-        errors.push(`CodeBuild - The 'build_image' parameter is required`);
-    }
-
-    if (phaseConfig.cache) {
-        const cache = phaseConfig.cache;
-        if (cache !== CacheType.S3 && cache !== CacheType.NO_CACHE) {
-            errors.push(`CodeBuild - The 'cache' parameter must be either 's3' or 'no-cache'`);
+        if (!phaseConfig.build_image) {
+            errors.push(`CodeBuild - The 'build_image' parameter is required`);
         }
+
+        if (phaseConfig.cache) {
+            const cache = phaseConfig.cache;
+            if (cache !== CacheType.S3 && cache !== CacheType.NO_CACHE) {
+                errors.push(`CodeBuild - The 'cache' parameter must be either 's3' or 'no-cache'`);
+            }
+        }
+
+        return errors;
     }
 
-    return errors;
-}
+    public getSecretsForPhase(phaseConfig: CodeBuildConfig): Promise<PhaseSecrets> {
+        return Promise.resolve({});
+    }
 
-export function getSecretsForPhase(phaseConfig: CodeBuildConfig): Promise<PhaseSecrets> {
-    return Promise.resolve({});
-}
+    public getSecretQuestions(phaseConfig: PhaseConfig): PhaseSecretQuestion[] {
+        return [];
+    }
 
-export function getSecretQuestions(phaseConfig: PhaseConfig): PhaseSecretQuestion[] {
-    return [];
-}
+    public async deployPhase(phaseContext: PhaseContext<CodeBuildConfig>): Promise<AWS.CodePipeline.StageDeclaration> {
+        await createBuildPhaseCodeBuildProject(phaseContext);
+        return getCodePipelinePhaseSpec(phaseContext);
+    }
 
-export async function deployPhase(phaseContext: PhaseContext<CodeBuildConfig>, accountConfig: AccountConfig): Promise<AWS.CodePipeline.StageDeclaration> {
-    await createBuildPhaseCodeBuildProject(phaseContext);
-    return getCodePipelinePhaseSpec(phaseContext);
-}
-
-export async function deletePhase(phaseContext: PhaseContext<CodeBuildConfig>, accountConfig: AccountConfig): Promise<boolean> {
-    const codeBuildProjectName = getBuildProjectName(phaseContext);
-    winston.info(`Deleting CodeBuild project '${codeBuildProjectName}'`);
-    await codeBuildCalls.deleteProject(codeBuildProjectName);
-    await deleteBuildPhaseServiceRole(accountConfig.account_id, phaseContext.appName);
-    return true;
+    public async deletePhase(phaseContext: PhaseContext<CodeBuildConfig>): Promise<boolean> {
+        const codeBuildProjectName = getBuildProjectName(phaseContext);
+        winston.info(`Deleting CodeBuild project '${codeBuildProjectName}'`);
+        await codeBuildCalls.deleteProject(codeBuildProjectName);
+        await deleteBuildPhaseServiceRole(phaseContext.accountConfig.account_id, phaseContext.appName);
+        return true;
+    }
 }

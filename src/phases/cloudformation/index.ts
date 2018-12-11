@@ -17,7 +17,12 @@
 import * as AWS from 'aws-sdk';
 import { AccountConfig } from 'handel-extension-api';
 import * as winston from 'winston';
-import { PhaseConfig, PhaseContext, PhaseSecretQuestion } from '../../datatypes/index';
+import {
+    PhaseConfig,
+    PhaseContext,
+    PhaseDeployer,
+    PhaseSecretQuestion
+} from '../../datatypes/index';
 
 export interface CloudformationConfig extends PhaseConfig {
     template_path: string;
@@ -60,34 +65,36 @@ function getCloudFormationPhaseSpec(phaseContext: PhaseContext<CloudformationCon
     return spec;
 }
 
-export function check(phaseConfig: CloudformationConfig) {
-    const errors = [];
+export class Phase implements PhaseDeployer {
+    public check(phaseConfig: CloudformationConfig) {
+        const errors = [];
 
-    if (!phaseConfig.deploy_role) {
-        errors.push(`Cloudformation - The 'deploy_role' parameter is required`);
+        if (!phaseConfig.deploy_role) {
+            errors.push(`Cloudformation - The 'deploy_role' parameter is required`);
+        }
+        if (!phaseConfig.template_path) {
+            errors.push(`Cloudformation - The 'template_path' parameter is required`);
+        }
+
+        return errors;
     }
-    if (!phaseConfig.template_path) {
-        errors.push(`Cloudformation - The 'template_path' parameter is required`);
+
+    public getSecretsForPhase(phaseConfig: CloudformationConfig) {
+        return Promise.resolve({});
     }
 
-    return errors;
-}
+    public getSecretQuestions(phaseConfig: PhaseConfig): PhaseSecretQuestion[] {
+        return [];
+    }
 
-export function getSecretsForPhase(phaseConfig: CloudformationConfig) {
-    return Promise.resolve({});
-}
+    public deployPhase(phaseContext: PhaseContext<CloudformationConfig>) {
+        winston.info(`Creating CloudFormation phase '${phaseContext.phaseName}'`);
 
-export function getSecretQuestions(phaseConfig: PhaseConfig): PhaseSecretQuestion[] {
-    return [];
-}
+        return Promise.resolve(getCloudFormationPhaseSpec(phaseContext, phaseContext.accountConfig));
+    }
 
-export function deployPhase(phaseContext: PhaseContext<CloudformationConfig>, accountConfig: AccountConfig) {
-    winston.info(`Creating CloudFormation phase '${phaseContext.phaseName}'`);
-
-    return Promise.resolve(getCloudFormationPhaseSpec(phaseContext, accountConfig));
-}
-
-export function deletePhase(phaseContext: PhaseContext<CloudformationConfig>, accountConfig: AccountConfig) {
-    winston.info(`Nothing to delete for CloudFormation phase '${phaseContext.phaseName}'`);
-    return Promise.resolve(true); // Nothing to delete
+    public deletePhase(phaseContext: PhaseContext<CloudformationConfig>) {
+        winston.info(`Nothing to delete for CloudFormation phase '${phaseContext.phaseName}'`);
+        return Promise.resolve(true); // Nothing to delete
+    }
 }

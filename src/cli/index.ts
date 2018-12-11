@@ -20,6 +20,7 @@ import { ParsedArgs } from 'minimist';
 import * as winston from 'winston';
 import * as iamCalls from '../aws/iam-calls';
 import * as s3Calls from '../aws/s3-calls';
+import * as stsCalls from '../aws/sts-calls';
 import * as util from '../common/util';
 import { PhaseDeployers, PhaseSecretQuestion, RockefellerFile } from '../datatypes/index';
 import * as input from '../input';
@@ -88,14 +89,15 @@ async function validateCredentials(accountConfig: AccountConfig) {
 
 // TODO - ADD SOME PIPELINECONTEXT OBJECT. This would replace the many things we pass around individually
 export async function deployAction(rockefellerFile: RockefellerFile, argv: ParsedArgs) {
+    await stsCalls.validateLoggedIn();
     configureLogger(argv);
-    const phaseDeployers = util.getPhaseDeployers();
+    const phaseDeployers = await util.getPhaseDeployers();
     validateRockefellerFile(rockefellerFile);
     checkPhases(rockefellerFile, phaseDeployers);
     const nonInteractive = (argv.pipeline && argv.account_name && argv.secrets);
 
     try {
-        if(!nonInteractive) {
+        if (!nonInteractive) {
             winston.info('Welcome to the Rockefeller setup wizard');
         }
         const pipelineParameters = await input.getPipelineParameters(argv);
@@ -112,7 +114,7 @@ export async function deployAction(rockefellerFile: RockefellerFile, argv: Parse
         const codePipelineBucketName = getCodePipelineBucketName(accountConfig);
         await s3Calls.createBucketIfNotExists(codePipelineBucketName, accountConfig.region);
         let phasesSecrets;
-        if(nonInteractive) {
+        if (nonInteractive) {
             phasesSecrets = lifecycle.getSecretsFromArgv(rockefellerFile, argv);
         } else {
             phasesSecrets = await lifecycle.getPhaseSecrets(phaseDeployers, rockefellerFile, pipelineName);
@@ -121,16 +123,18 @@ export async function deployAction(rockefellerFile: RockefellerFile, argv: Parse
         await lifecycle.deployPipeline(rockefellerFile, pipelineName, accountConfig, pipelinePhases, codePipelineBucketName);
         await lifecycle.addWebhooks(phaseDeployers, rockefellerFile, pipelineName, accountConfig, codePipelineBucketName);
         winston.info(`Finished creating pipeline in ${accountConfig.account_id}`);
-    } catch(err) {
+    } catch (err) {
+        // when the account_config_path is not correct, then this block of code is hit.
+        // Have it ask again instead
         winston.error(`Error setting up Rockefeller: ${err.message}`);
         winston.error(err);
         process.exit(1);
     }
 }
 
-export function checkAction(rockefellerFile: RockefellerFile, argv: ParsedArgs) {
+export async function checkAction(rockefellerFile: RockefellerFile, argv: ParsedArgs) {
     configureLogger(argv);
-    const phaseDeployers = util.getPhaseDeployers();
+    const phaseDeployers = await util.getPhaseDeployers();
     lifecycle.validatePipelineSpec(rockefellerFile);
     checkPhases(rockefellerFile, phaseDeployers);
     winston.info('No errors were found in your Handel-CodePipeline file');
@@ -138,11 +142,11 @@ export function checkAction(rockefellerFile: RockefellerFile, argv: ParsedArgs) 
 
 export async function deleteAction(rockefellerFile: RockefellerFile, argv: ParsedArgs) {
     configureLogger(argv);
-    if(!(argv.pipeline && argv.account_name)) {
+    if (!(argv.pipeline && argv.account_name)) {
         winston.info('Welcome to the Handel CodePipeline deletion wizard');
     }
 
-    const phaseDeployers = util.getPhaseDeployers();
+    const phaseDeployers = await util.getPhaseDeployers();
 
     const pipelineConfig = await input.getPipelineConfigForDelete(argv);
     const accountName = pipelineConfig.accountName;
@@ -167,17 +171,17 @@ export async function deleteAction(rockefellerFile: RockefellerFile, argv: Parse
 }
 
 export async function listSecretsAction(rockefellerFile: RockefellerFile, argv: ParsedArgs) {
-    if(!argv.pipeline) {
+    if (!argv.pipeline) {
         winston.error('The --pipeline argument is required');
         process.exit(1);
     }
     if (!rockefellerFile.pipelines[argv.pipeline]) {
         throw new Error(`The pipeline '${argv.pipeline}' you specified doesn't exist in your Handel-Codepipeline file`);
     }
-    const phaseDeployers = util.getPhaseDeployers();
+    const phaseDeployers = await util.getPhaseDeployers();
     const phaseDeployerSecretsQuestions: PhaseSecretQuestion[] = [];
     const pipelineConfig = rockefellerFile.pipelines[argv.pipeline];
-    for(const phaseConfig of pipelineConfig.phases) {
+    for (const phaseConfig of pipelineConfig.phases) {
         const phaseDeployer = phaseDeployers[phaseConfig.type];
         const questions = phaseDeployer.getSecretQuestions(phaseConfig);
         questions.forEach((question: PhaseSecretQuestion) => {
@@ -187,4 +191,15 @@ export async function listSecretsAction(rockefellerFile: RockefellerFile, argv: 
     }
     // tslint:disable-next-line:no-console
     console.log(JSON.stringify(phaseDeployerSecretsQuestions));
+}
+
+export async function redefineAccountConfigsPath(argv: ParsedArgs) {
+    winston.info('This command will overwrite your account configs path.');
+    try {
+        // Double check that this is all I need to do
+        const newPath = await input.redefineAccountConfigsPathSetup(argv);
+        winston.info(`Your account_configs_path is now set to ${newPath}.`);
+    } catch(e) {
+        throw new Error(`Unable to redefine account_configs_path: ${e}`);
+    }
 }

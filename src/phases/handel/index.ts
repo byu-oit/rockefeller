@@ -15,13 +15,18 @@
  *
  */
 import * as AWS from 'aws-sdk';
-import { AccountConfig } from 'handel-extension-api';
 import * as winston from 'winston';
 import * as codeBuildCalls from '../../aws/codebuild-calls';
 import { getPipelineProjectName } from '../../aws/codepipeline-calls';
 import * as iamCalls from '../../aws/iam-calls';
 import * as util from '../../common/util';
-import { PhaseConfig, PhaseContext, PhaseSecretQuestion, PhaseSecrets } from '../../datatypes/index';
+import {
+    PhaseConfig,
+    PhaseContext,
+    PhaseDeployer,
+    PhaseSecretQuestion,
+    PhaseSecrets
+} from '../../datatypes/index';
 
 export interface HandelConfig extends PhaseConfig {
     environments_to_deploy: string[];
@@ -43,7 +48,7 @@ async function createDeployPhaseServiceRole(accountId: string): Promise<AWS.IAM.
     return iamCalls.createOrUpdateRoleAndPolicy(DEPLOY_PHASE_ROLE_NAME, ['codebuild.amazonaws.com'], policyArn, policyDocument);
 }
 
-async function createDeployPhaseCodeBuildProject(phaseContext: PhaseContext<HandelConfig>, accountConfig: AccountConfig): Promise<AWS.CodeBuild.Project> {
+async function createDeployPhaseCodeBuildProject(phaseContext: PhaseContext<HandelConfig>): Promise<AWS.CodeBuild.Project> {
     const {appName, pipelineName, phaseName} = phaseContext;
     const deployProjectName = getDeployProjectName(phaseContext);
     const deployPhaseRole = await createDeployPhaseServiceRole(phaseContext.accountConfig.account_id);
@@ -53,7 +58,7 @@ async function createDeployPhaseCodeBuildProject(phaseContext: PhaseContext<Hand
 
     const handelDeployEnvVars = {
         ENVS_TO_DEPLOY: phaseContext.params.environments_to_deploy.join(','),
-        HANDEL_ACCOUNT_CONFIG: new Buffer(JSON.stringify(accountConfig)).toString('base64'),
+        HANDEL_ACCOUNT_CONFIG: new Buffer(JSON.stringify(phaseContext.accountConfig)).toString('base64'),
         PIPELINE_NAME: getPipelineProjectName(appName, pipelineName)
     };
     const handelDeployImage = 'aws/codebuild/nodejs:7.0.0';
@@ -122,32 +127,34 @@ function getCodePipelinePhaseSpec(phaseContext: PhaseContext<HandelConfig>): AWS
     };
 }
 
-export function check(phaseConfig: HandelConfig): string[] {
-    const errors: string[] = [];
+export class Phase implements PhaseDeployer {
+    public check(phaseConfig: HandelConfig): string[] {
+        const errors: string[] = [];
 
-    if (!phaseConfig.environments_to_deploy) {
-        errors.push(`GitHub - The 'environments_to_deploy' parameter is required`);
+        if (!phaseConfig.environments_to_deploy) {
+            errors.push(`GitHub - The 'environments_to_deploy' parameter is required`);
+        }
+
+        return errors;
     }
 
-    return errors;
-}
+    public getSecretsForPhase(phaseConfig: HandelConfig): Promise<PhaseSecrets> {
+        return Promise.resolve({});
+    }
 
-export function getSecretsForPhase(phaseConfig: HandelConfig): Promise<PhaseSecrets> {
-    return Promise.resolve({});
-}
+    public getSecretQuestions(phaseConfig: PhaseConfig): PhaseSecretQuestion[] {
+        return [];
+    }
 
-export function getSecretQuestions(phaseConfig: PhaseConfig): PhaseSecretQuestion[] {
-    return [];
-}
+    public async deployPhase(phaseContext: PhaseContext<HandelConfig>): Promise<AWS.CodePipeline.StageDeclaration> {
+        await createDeployPhaseCodeBuildProject(phaseContext);
+        return getCodePipelinePhaseSpec(phaseContext);
+    }
 
-export async function deployPhase(phaseContext: PhaseContext<HandelConfig>, accountConfig: AccountConfig): Promise<AWS.CodePipeline.StageDeclaration> {
-    const codeBuildProject = await createDeployPhaseCodeBuildProject(phaseContext, accountConfig);
-    return getCodePipelinePhaseSpec(phaseContext);
-}
-
-export async function deletePhase(phaseContext: PhaseContext<HandelConfig>, accountConfig: AccountConfig): Promise<boolean> {
-    const codeBuildProjectName = getDeployProjectName(phaseContext);
-    winston.info(`Delete CodeBuild project for '${codeBuildProjectName}'`);
-    await codeBuildCalls.deleteProject(codeBuildProjectName);
-    return true;
+    public async deletePhase(phaseContext: PhaseContext<HandelConfig>): Promise<boolean> {
+        const codeBuildProjectName = getDeployProjectName(phaseContext);
+        winston.info(`Delete CodeBuild project for '${codeBuildProjectName}'`);
+        await codeBuildCalls.deleteProject(codeBuildProjectName);
+        return true;
+    }
 }

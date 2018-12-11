@@ -22,7 +22,13 @@ import * as codeBuildCalls from '../../aws/codebuild-calls';
 import * as iamCalls from '../../aws/iam-calls';
 import * as ssmCalls from '../../aws/ssm-calls';
 import * as util from '../../common/util';
-import { PhaseConfig, PhaseContext, PhaseSecretQuestion, PhaseSecrets } from '../../datatypes';
+import {
+    PhaseConfig,
+    PhaseContext,
+    PhaseDeployer,
+    PhaseSecretQuestion,
+    PhaseSecrets
+} from '../../datatypes';
 
 export interface PypiConfig extends PhaseConfig {
     server: string;
@@ -105,7 +111,7 @@ async function deletePypiPhaseServiceRole(accountId: string, appName: string): P
     return true;
 }
 
-async function createPypiPhaseCodeBuildProject(phaseContext: PhaseContext<PypiConfig>, accountConfig: AccountConfig): Promise<boolean> {
+async function createPypiPhaseCodeBuildProject(phaseContext: PhaseContext<PypiConfig>): Promise<boolean> {
     const {appName, pipelineName, phaseName} = phaseContext;
     const pypiProjectName = getPypiProjectName(phaseContext);
     const buildspecParams = {
@@ -178,14 +184,6 @@ function getCodePipelinePhaseSpec(phaseContext: PhaseContext<PypiConfig>): AWS.C
     };
 }
 
-export function check(phaseConfig: PypiConfig): string[] {
-    return []; // No required parameters
-}
-
-export function getSecretsForPhase(phaseConfig: PypiConfig): Promise<PhaseSecrets> {
-    return inquirer.prompt(getQuestions(phaseConfig));
-}
-
 function getQuestions(phaseConfig: PhaseConfig) {
     return [
         {
@@ -201,29 +199,39 @@ function getQuestions(phaseConfig: PhaseConfig) {
     ];
 }
 
-export function getSecretQuestions(phaseConfig: PhaseConfig): PhaseSecretQuestion[] {
-    const questions = getQuestions(phaseConfig);
-    const result: PhaseSecretQuestion[] = [];
-    questions.forEach((question) => {
-        result.push({
-            phaseName: phaseConfig.name,
-            name: question.name,
-            message: question.message
+export class Phase implements PhaseDeployer {
+    public check(phaseConfig: PypiConfig): string[] {
+        return []; // No required parameters
+    }
+
+    public getSecretsForPhase(phaseConfig: PypiConfig): Promise<PhaseSecrets> {
+        return inquirer.prompt(getQuestions(phaseConfig));
+    }
+
+    public getSecretQuestions(phaseConfig: PhaseConfig): PhaseSecretQuestion[] {
+        const questions = getQuestions(phaseConfig);
+        const result: PhaseSecretQuestion[] = [];
+        questions.forEach((question) => {
+            result.push({
+                phaseName: phaseConfig.name,
+                name: question.name,
+                message: question.message
+            });
         });
-    });
-    return result;
-}
+        return result;
+    }
 
-export async function deployPhase(phaseContext: PhaseContext<PypiConfig>, accountConfig: AccountConfig): Promise<AWS.CodePipeline.StageDeclaration> {
-    await createPypiPhaseCodeBuildProject(phaseContext, accountConfig);
-    return getCodePipelinePhaseSpec(phaseContext);
-}
+    public async deployPhase(phaseContext: PhaseContext<PypiConfig>): Promise<AWS.CodePipeline.StageDeclaration> {
+        await createPypiPhaseCodeBuildProject(phaseContext);
+        return getCodePipelinePhaseSpec(phaseContext);
+    }
 
-export async function deletePhase(phaseContext: PhaseContext<PypiConfig>, accountConfig: AccountConfig): Promise<boolean> {
-    const codeBuildProjectName = getPypiProjectName(phaseContext);
-    winston.info(`Delete CodeBuild project for '${codeBuildProjectName}'`);
-    await codeBuildCalls.deleteProject(codeBuildProjectName);
-    await ssmCalls.deleteParameters(getPypiParameterNames(phaseContext));
-    await deletePypiPhaseServiceRole(accountConfig.account_id, phaseContext.appName);
-    return true;
+    public async deletePhase(phaseContext: PhaseContext<PypiConfig>): Promise<boolean> {
+        const codeBuildProjectName = getPypiProjectName(phaseContext);
+        winston.info(`Delete CodeBuild project for '${codeBuildProjectName}'`);
+        await codeBuildCalls.deleteProject(codeBuildProjectName);
+        await ssmCalls.deleteParameters(getPypiParameterNames(phaseContext));
+        await deletePypiPhaseServiceRole(phaseContext.accountConfig.account_id, phaseContext.appName);
+        return true;
+    }
 }

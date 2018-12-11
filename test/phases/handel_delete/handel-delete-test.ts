@@ -21,16 +21,19 @@ import * as codebuildCalls from '../../../src/aws/codebuild-calls';
 import * as iamCalls from '../../../src/aws/iam-calls';
 import * as util from '../../../src/common/util';
 import { PhaseContext } from '../../../src/datatypes/index';
-import * as handelDelete from '../../../src/phases/handel_delete';
+import { Phase } from '../../../src/phases/handel_delete';
+import * as handelDeleteParams from '../../../src/phases/handel_delete';
 
 describe('handel phase module', () => {
     let sandbox: sinon.SinonSandbox;
+    let handelDelete: Phase;
     let accountConfig: AccountConfig;
-    let phaseConfig: handelDelete.HandelDeleteConfig;
-    let phaseContext: PhaseContext<handelDelete.HandelDeleteConfig>;
+    let phaseConfig: handelDeleteParams.HandelDeleteConfig;
+    let phaseContext: PhaseContext<handelDeleteParams.HandelDeleteConfig>;
 
     beforeEach(() => {
         sandbox = sinon.sandbox.create();
+        handelDelete = new Phase();
 
         accountConfig = util.loadYamlFile(`${__dirname}/../../example-account-config.yml`);
 
@@ -42,7 +45,7 @@ describe('handel phase module', () => {
             ]
         };
 
-        phaseContext = new PhaseContext<handelDelete.HandelDeleteConfig>(
+        phaseContext = new PhaseContext<handelDeleteParams.HandelDeleteConfig>(
             'myapp',
             'myphase',
             'handel_delete',
@@ -89,7 +92,7 @@ describe('handel phase module', () => {
             const getProjectStub = sandbox.stub(codebuildCalls, 'getProject').resolves(null);
             const createProjectStub = sandbox.stub(codebuildCalls, 'createProject').resolves({});
 
-            const phase = await handelDelete.deployPhase(phaseContext, accountConfig);
+            const phase = await handelDelete.deployPhase(phaseContext);
             expect(createOrUpdateRoleStub.callCount).to.equal(1);
             expect(getProjectStub.callCount).to.equal(1);
             expect(createProjectStub.callCount).to.equal(1);
@@ -100,7 +103,7 @@ describe('handel phase module', () => {
             const getProjectStub = sandbox.stub(codebuildCalls, 'getProject').resolves({});
             const updateProjectStub = sandbox.stub(codebuildCalls, 'updateProject').resolves({});
 
-            const phase = await handelDelete.deployPhase(phaseContext, accountConfig);
+            const phase = await handelDelete.deployPhase(phaseContext);
             expect(createOrUpdateRoleStub.callCount).to.equal(1);
             expect(getProjectStub.callCount).to.equal(1);
             expect(updateProjectStub.callCount).to.equal(1);
@@ -111,7 +114,7 @@ describe('handel phase module', () => {
         it('should delete the codebuild project', async () => {
             const deleteProjectStub = sandbox.stub(codebuildCalls, 'deleteProject').resolves(true);
 
-            const result = await handelDelete.deletePhase(phaseContext, accountConfig);
+            const result = await handelDelete.deletePhase(phaseContext);
             expect(result).to.equal(true);
             expect(deleteProjectStub.callCount).to.equal(1);
         });
