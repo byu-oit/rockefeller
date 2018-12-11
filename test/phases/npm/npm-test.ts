@@ -23,16 +23,19 @@ import * as iamCalls from '../../../src/aws/iam-calls';
 import * as ssmCalls from '../../../src/aws/ssm-calls';
 import * as util from '../../../src/common/util';
 import { PhaseContext } from '../../../src/datatypes/index';
-import * as npm from '../../../src/phases/npm';
+import { Phase } from '../../../src/phases/npm';
+import * as npmParams from '../../../src/phases/npm';
 
 describe('npm phase module', () => {
     let sandbox: sinon.SinonSandbox;
+    let npm: Phase;
     let accountConfig: AccountConfig;
-    let phaseConfig: npm.NpmConfig;
-    let phaseContext: PhaseContext<npm.NpmConfig>;
+    let phaseConfig: npmParams.NpmConfig;
+    let phaseContext: PhaseContext<npmParams.NpmConfig>;
 
     beforeEach(() => {
         sandbox = sinon.sandbox.create();
+        npm = new Phase();
 
         accountConfig = util.loadYamlFile(`${__dirname}/../../example-account-config.yml`);
 
@@ -42,7 +45,7 @@ describe('npm phase module', () => {
             build_image: 'FakeImage'
         };
 
-        phaseContext = new PhaseContext<npm.NpmConfig>(
+        phaseContext = new PhaseContext<npmParams.NpmConfig>(
             'myapp',
             'myphase',
             'npm',

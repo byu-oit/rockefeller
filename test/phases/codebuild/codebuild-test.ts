@@ -24,7 +24,8 @@ import * as iamCalls from '../../../src/aws/iam-calls';
 // import * as handel from '../../../src/common/handel';
 import * as util from '../../../src/common/util';
 import {PhaseContext} from '../../../src/datatypes/index';
-import * as codebuild from '../../../src/phases/codebuild';
+import { Phase } from '../../../src/phases/codebuild';
+import * as codebuildParams from '../../../src/phases/codebuild';
 // import {HandelExtraResources} from '../../../src/phases/codebuild';
 
 chai.use(sinonChai);
@@ -32,12 +33,14 @@ const expect = chai.expect;
 
 describe('codebuild phase module', () => {
     let sandbox: sinon.SinonSandbox;
+    let codebuild: Phase;
     let accountConfig: AccountConfig;
-    let phaseConfig: codebuild.CodeBuildConfig;
-    let phaseContext: PhaseContext<codebuild.CodeBuildConfig>;
+    let phaseConfig: codebuildParams.CodeBuildConfig;
+    let phaseContext: PhaseContext<codebuildParams.CodeBuildConfig>;
 
     beforeEach(() => {
         sandbox = sinon.sandbox.create();
+        codebuild = new Phase();
 
         accountConfig = util.loadYamlFile(`${__dirname}/../../example-account-config.yml`);
 
@@ -47,7 +50,7 @@ describe('codebuild phase module', () => {
             build_image: 'MyImage'
         };
 
-        phaseContext = new PhaseContext<codebuild.CodeBuildConfig>(
+        phaseContext = new PhaseContext<codebuildParams.CodeBuildConfig>(
             'myapp',
             'myphase',
             'codebuild',

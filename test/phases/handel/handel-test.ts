@@ -21,16 +21,19 @@ import * as codebuildCalls from '../../../src/aws/codebuild-calls';
 import * as iamCalls from '../../../src/aws/iam-calls';
 import * as util from '../../../src/common/util';
 import { PhaseContext } from '../../../src/datatypes/index';
-import * as handel from '../../../src/phases/handel';
+import { Phase } from '../../../src/phases/handel';
+import * as handelParams from '../../../src/phases/handel';
 
 describe('handel phase module', () => {
     let sandbox: sinon.SinonSandbox;
+    let handel: Phase;
     let accountConfig: AccountConfig;
-    let phaseConfig: handel.HandelConfig;
-    let phaseContext: PhaseContext<handel.HandelConfig>;
+    let phaseConfig: handelParams.HandelConfig;
+    let phaseContext: PhaseContext<handelParams.HandelConfig>;
 
     beforeEach(() => {
         sandbox = sinon.sandbox.create();
+        handel = new Phase();
 
         accountConfig = util.loadYamlFile(`${__dirname}/../../example-account-config.yml`);
 
@@ -42,7 +45,7 @@ describe('handel phase module', () => {
             ]
         };
 
-        phaseContext = new PhaseContext<handel.HandelConfig>(
+        phaseContext = new PhaseContext<handelParams.HandelConfig>(
             'myapp',
             'myphase',
             'handel',

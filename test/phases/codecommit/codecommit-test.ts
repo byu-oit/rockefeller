@@ -19,16 +19,19 @@ import { AccountConfig } from 'handel-extension-api';
 import * as sinon from 'sinon';
 import * as util from '../../../src/common/util';
 import { PhaseContext } from '../../../src/datatypes/index';
-import * as codecommit from '../../../src/phases/codecommit';
+import { Phase } from '../../../src/phases/codecommit';
+import * as codecommitParams from '../../../src/phases/codecommit';
 
 describe('github phase module', () => {
     let sandbox: sinon.SinonSandbox;
+    let codecommit: Phase;
     let accountConfig: AccountConfig;
-    let phaseConfig: codecommit.CodeCommitConfig;
-    let phaseContext: PhaseContext<codecommit.CodeCommitConfig>;
+    let phaseConfig: codecommitParams.CodeCommitConfig;
+    let phaseContext: PhaseContext<codecommitParams.CodeCommitConfig>;
 
     beforeEach(() => {
         sandbox = sinon.sandbox.create();
+        codecommit = new Phase();
 
         accountConfig = util.loadYamlFile(`${__dirname}/../../example-account-config.yml`);
 
@@ -39,7 +42,7 @@ describe('github phase module', () => {
             branch: 'MyBranch'
         };
 
-        phaseContext = new PhaseContext<codecommit.CodeCommitConfig>(
+        phaseContext = new PhaseContext<codecommitParams.CodeCommitConfig>(
             'myapp',
             'myphase',
             'codecommit',

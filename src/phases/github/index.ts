@@ -15,11 +15,16 @@
  *
  */
 import * as crypto from 'crypto';
-import { AccountConfig } from 'handel-extension-api';
 import * as inquirer from 'inquirer';
 import * as winston from 'winston';
 import * as codepipelineCalls from '../../aws/codepipeline-calls';
-import { PhaseConfig, PhaseContext, PhaseSecretQuestion, PhaseSecrets } from '../../datatypes/index';
+import {
+    PhaseConfig,
+    PhaseContext,
+    PhaseDeployer,
+    PhaseSecretQuestion,
+    PhaseSecrets
+} from '../../datatypes/index';
 
 export interface GithubConfig extends PhaseConfig {
     owner: string;
@@ -27,21 +32,117 @@ export interface GithubConfig extends PhaseConfig {
     branch: string;
 }
 
-export function check(phaseConfig: GithubConfig): string[] {
-    const errors = [];
+export class Phase implements PhaseDeployer {
+    public check(phaseConfig: GithubConfig): string[] {
+        const errors = [];
 
-    if (!phaseConfig.owner) {
-        errors.push(`GitHub - The 'owner' parameter is required`);
+        if (!phaseConfig.owner) {
+            errors.push(`GitHub - The 'owner' parameter is required`);
+        }
+        if (!phaseConfig.repo) {
+            errors.push(`GitHub - The 'repo' parameter is required`);
+        }
+
+        return errors;
     }
-    if (!phaseConfig.repo) {
-        errors.push(`GitHub - The 'repo' parameter is required`);
+
+    public getSecretsForPhase(phaseConfig: PhaseConfig): Promise<PhaseSecrets> {
+        return inquirer.prompt(getQuestions(phaseConfig));
     }
 
-    return errors;
-}
+    public getSecretQuestions(phaseConfig: PhaseConfig): PhaseSecretQuestion[] {
+        const questions = getQuestions(phaseConfig);
+        const result: PhaseSecretQuestion[] = [];
+        questions.forEach((question) => {
+            result.push({
+                phaseName: phaseConfig.name,
+                name: question.name,
+                message: question.message
+            });
+        });
+        return result;
+    }
 
-export function getSecretsForPhase(phaseConfig: PhaseConfig): Promise<PhaseSecrets> {
-    return inquirer.prompt(getQuestions(phaseConfig));
+    public deployPhase(phaseContext: PhaseContext<GithubConfig>) {
+        winston.info(`Creating source phase '${phaseContext.phaseName}'`);
+        const branch = phaseContext.params.branch || 'master';
+
+        return Promise.resolve({
+            name: phaseContext.phaseName,
+            actions: [
+                {
+                    inputArtifacts: [],
+                    name: phaseContext.phaseName,
+                    actionTypeId: {
+                        category: 'Source',
+                        owner: 'ThirdParty',
+                        version: '1',
+                        provider: 'GitHub'
+                    },
+                    outputArtifacts: [
+                        {
+                            name: `Output_Source`
+                        }
+                    ],
+                    configuration: {
+                        Owner: phaseContext.params.owner,
+                        Repo: phaseContext.params.repo,
+                        Branch: branch,
+                        OAuthToken: phaseContext.secrets.githubAccessToken,
+                        PollForSourceChanges: 'false'
+                    },
+                    runOrder: 1
+                }
+            ]
+        });
+    }
+
+    public deletePhase(phaseContext: PhaseContext<GithubConfig>) {
+        winston.info(`Nothing to delete for source phase '${phaseContext.phaseName}'`);
+        return Promise.resolve(true); // Nothing to delete
+    }
+
+    public async addWebhook(phaseContext: PhaseContext<GithubConfig>) {
+        const appName = phaseContext.appName;
+        const pipelineName = phaseContext.pipelineName;
+        const phaseName = phaseContext.phaseName;
+        const pipelineProjectName = codepipelineCalls.getPipelineProjectName(appName, pipelineName);
+        const webhookName = codepipelineCalls.getPipelineWebhookName(appName, pipelineName);
+        const webhookExists = await checkWebhookExists(webhookName);
+        if (!webhookExists) {
+            const webhookParam: AWS.CodePipeline.PutWebhookInput = {
+                'webhook': {
+                    'name': webhookName,
+                    'targetPipeline': pipelineProjectName,
+                    'targetAction': phaseName,
+                    'filters': [
+                        {
+                            'jsonPath': '$.ref',
+                            'matchEquals': 'refs/heads/{Branch}'
+                        }
+                    ],
+                    'authentication': 'GITHUB_HMAC',
+                    'authenticationConfiguration': {
+                        'SecretToken': crypto.randomBytes(32).toString('hex')
+                    }
+                }
+            };
+            const webhook = await codepipelineCalls.putWebhook(webhookParam);
+            const registerWebhook = await codepipelineCalls.registerWebhook(webhookName);
+        }
+    }
+
+    public async removeWebhook(phaseContext: PhaseContext<GithubConfig>) {
+        const appName = phaseContext.appName;
+        const pipelineName = phaseContext.pipelineName;
+        const webhookName = codepipelineCalls.getPipelineWebhookName(appName, pipelineName);
+        const webhookExists = await codepipelineCalls.webhookExists(webhookName);
+        if (webhookExists) {
+            await codepipelineCalls.deregisterWebhook(webhookName);
+            await codepipelineCalls.deleteWebhook(webhookName);
+        }
+    }
+
 }
 
 function getQuestions(phaseConfig: PhaseConfig) {
@@ -52,99 +153,6 @@ function getQuestions(phaseConfig: PhaseConfig) {
             message: `'${phaseConfig.name}' phase - Please enter your GitHub access token`,
         }
     ];
-}
-
-export function getSecretQuestions(phaseConfig: PhaseConfig): PhaseSecretQuestion[] {
-    const questions = getQuestions(phaseConfig);
-    const result: PhaseSecretQuestion[] = [];
-    questions.forEach((question) => {
-        result.push({
-            phaseName: phaseConfig.name,
-            name: question.name,
-            message: question.message
-        });
-    });
-    return result;
-}
-
-export function deployPhase(phaseContext: PhaseContext<GithubConfig>) {
-    winston.info(`Creating source phase '${phaseContext.phaseName}'`);
-    const branch = phaseContext.params.branch || 'master';
-
-    return Promise.resolve({
-        name: phaseContext.phaseName,
-        actions: [
-            {
-                inputArtifacts: [],
-                name: phaseContext.phaseName,
-                actionTypeId: {
-                    category: 'Source',
-                    owner: 'ThirdParty',
-                    version: '1',
-                    provider: 'GitHub'
-                },
-                outputArtifacts: [
-                    {
-                        name: `Output_Source`
-                    }
-                ],
-                configuration: {
-                    Owner: phaseContext.params.owner,
-                    Repo: phaseContext.params.repo,
-                    Branch: branch,
-                    OAuthToken: phaseContext.secrets.githubAccessToken,
-                    PollForSourceChanges: 'false'
-                },
-                runOrder: 1
-            }
-        ]
-    });
-}
-
-export function deletePhase(phaseContext: PhaseContext<GithubConfig>) {
-    winston.info(`Nothing to delete for source phase '${phaseContext.phaseName}'`);
-    return Promise.resolve({}); // Nothing to delete
-}
-
-export async function addWebhook(phaseContext: PhaseContext<GithubConfig>) {
-    const appName = phaseContext.appName;
-    const pipelineName = phaseContext.pipelineName;
-    const phaseName = phaseContext.phaseName;
-    const pipelineProjectName = codepipelineCalls.getPipelineProjectName(appName, pipelineName);
-    const webhookName = codepipelineCalls.getPipelineWebhookName(appName, pipelineName);
-    const webhookExists = await checkWebhookExists(webhookName);
-    if (!webhookExists) {
-        const webhookParam: AWS.CodePipeline.PutWebhookInput = {
-            'webhook': {
-                'name': webhookName,
-                'targetPipeline': pipelineProjectName,
-                'targetAction': phaseName,
-                'filters': [
-                    {
-                        'jsonPath': '$.ref',
-                        'matchEquals': 'refs/heads/{Branch}'
-                    }
-                ],
-                'authentication': 'GITHUB_HMAC',
-                'authenticationConfiguration': {
-                    'SecretToken': crypto.randomBytes(32).toString('hex')
-                }
-            }
-        };
-        const webhook = await codepipelineCalls.putWebhook(webhookParam);
-        const registerWebhook = await codepipelineCalls.registerWebhook(webhookName);
-    }
-}
-
-export async function removeWebhook(phaseContext: PhaseContext<GithubConfig>) {
-    const appName = phaseContext.appName;
-    const pipelineName = phaseContext.pipelineName;
-    const webhookName = codepipelineCalls.getPipelineWebhookName(appName, pipelineName);
-    const webhookExists = await codepipelineCalls.webhookExists(webhookName);
-    if(webhookExists) {
-        await codepipelineCalls.deregisterWebhook(webhookName);
-        await codepipelineCalls.deleteWebhook(webhookName);
-    }
 }
 
 async function checkWebhookExists(webhookName: string): Promise<boolean> {
