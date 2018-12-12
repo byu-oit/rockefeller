@@ -226,7 +226,6 @@ describe('lifecycle module', () => {
             // This is returning as a function, and not as the resolved promise
             phaseDeployers.codebuild.deployPhase = (phaseContext) => Promise.resolve(codebuildPhaseResult);
             rockefellerFile = util.loadYamlFile(`${__dirname}/handel-codepipeline-example.yml`);
-            console.log(phaseDeployers);
             const pipelineToDeploy = 'dev';
             const phaseSecrets: PhaseSecrets = {};
 

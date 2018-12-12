@@ -212,7 +212,9 @@ export async function addWebhooks(
 ) {
     // tslint:disable-next-line:forin
     for (const phaseName in pipelineContext.phaseContexts) {
+        // phaseDeployer is returning as undefined
         const phaseDeloyer = phaseDeployers[phaseName];
+        // this cannot read .addWebhook for PhaseDeployer
         if (phaseDeloyer.addWebhook) {
             const phaseContext = pipelineContext.phaseContexts[phaseName];
             await phaseDeloyer.addWebhook(phaseContext);
