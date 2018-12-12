@@ -22,7 +22,14 @@ import * as iamCalls from '../aws/iam-calls';
 import * as s3Calls from '../aws/s3-calls';
 import * as stsCalls from '../aws/sts-calls';
 import * as util from '../common/util';
-import { PhaseDeployers, PhaseSecretQuestion, RockefellerFile } from '../datatypes/index';
+import {
+    PhaseConfig,
+    PhaseDeployers,
+    PhaseSecretQuestion,
+    PhaseSecrets,
+    PipelineContext,
+    RockefellerFile
+} from '../datatypes/index';
 import * as input from '../input';
 import * as lifecycle from '../lifecycle';
 
@@ -87,6 +94,23 @@ async function validateCredentials(accountConfig: AccountConfig) {
     }
 }
 
+export function getPhaseContext(
+    pipelineContext: PipelineContext,
+    phase: PhaseConfig,
+    phaseSecrets: PhaseSecrets
+) {
+    return {
+        appName: pipelineContext.appName,
+        codePipelineBucketName: pipelineContext.codepipelineBucketName,
+        pipelineName: pipelineContext.pipelineName,
+        accountConfig: pipelineContext.accountConfig,
+        phaseType: phase.type,
+        phaseName: phase.name,
+        params: phase,
+        secrets: phaseSecrets
+    };
+}
+
 // TODO - ADD SOME PIPELINECONTEXT OBJECT. This would replace the many things we pass around individually
 export async function deployAction(rockefellerFile: RockefellerFile, argv: ParsedArgs) {
     await stsCalls.validateLoggedIn();
@@ -119,9 +143,15 @@ export async function deployAction(rockefellerFile: RockefellerFile, argv: Parse
         } else {
             phasesSecrets = await lifecycle.getPhaseSecrets(phaseDeployers, rockefellerFile, pipelineName);
         }
-        const pipelinePhases = await lifecycle.deployPhases(phaseDeployers, rockefellerFile, pipelineName, accountConfig, phasesSecrets, codePipelineBucketName);
-        await lifecycle.deployPipeline(rockefellerFile, pipelineName, accountConfig, pipelinePhases, codePipelineBucketName);
-        await lifecycle.addWebhooks(phaseDeployers, rockefellerFile, pipelineName, accountConfig, codePipelineBucketName);
+        const pipelineContext = new PipelineContext(rockefellerFile.version, rockefellerFile.name, pipelineName, accountConfig, codePipelineBucketName);
+
+        for (const phase of rockefellerFile.pipelines[pipelineName].phases) {
+            const phaseContext = getPhaseContext(pipelineContext, phase, phasesSecrets[phase.name]);
+            pipelineContext.phaseContexts[phase.name] = phaseContext;
+        }
+        const pipelinePhases = await lifecycle.deployPhases(phaseDeployers, pipelineContext);
+        await lifecycle.deployPipeline(pipelinePhases, pipelineContext);
+        await lifecycle.addWebhooks(phaseDeployers, pipelineContext);
         winston.info(`Finished creating pipeline in ${accountConfig.account_id}`);
     } catch (err) {
         // when the account_config_path is not correct, then this block of code is hit.
@@ -155,13 +185,13 @@ export async function deleteAction(rockefellerFile: RockefellerFile, argv: Parse
     await validateCredentials(accountConfig);
     AWS.config.update({ region: accountConfig.region });
     const codePipelineBucketName = getCodePipelineBucketName(accountConfig);
-    const pipelineName = pipelineConfig.pipelineToDelete;
-    const appName = rockefellerFile.name;
+
+    const pipelineContext = new PipelineContext(rockefellerFile.version, rockefellerFile.name, pipelineConfig.pipelineToDelete, accountConfig, codePipelineBucketName);
 
     try {
-        await lifecycle.removeWebhooks(phaseDeployers, rockefellerFile, pipelineName, accountConfig, codePipelineBucketName);
-        await lifecycle.deletePipeline(appName, pipelineName);
-        return lifecycle.deletePhases(phaseDeployers, rockefellerFile, pipelineName, accountConfig, codePipelineBucketName);
+        await lifecycle.removeWebhooks(phaseDeployers, pipelineContext);
+        await lifecycle.deletePipeline(pipelineContext);
+        return lifecycle.deletePhases(phaseDeployers, pipelineContext);
     }
     catch (err) {
         winston.error(`Error deleting Handel CodePipeline: ${err}`);

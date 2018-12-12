@@ -23,6 +23,8 @@ import {
     PhaseContext,
     PhaseDeployers,
     PhaseSecrets,
+    PhasesSecrets,
+    PipelineContext,
     RockefellerFile
 } from '../datatypes';
 
@@ -42,24 +44,6 @@ function deployPhase(phaseContext: PhaseContext<PhaseConfig>, phaseDeployers: Ph
                 return await phaseDeployer.deployPhase(phaseContext);
             }
         });
-}
-
-function getPhaseContext(rockefellerFile: RockefellerFile,
-    codePipelineBucketName: string,
-    pipelineName: string,
-    accountConfig: AccountConfig,
-    phase: PhaseConfig,
-    phaseSecrets: PhaseSecrets) {
-    return {
-        appName: rockefellerFile.name,
-        codePipelineBucketName: codePipelineBucketName,
-        pipelineName: pipelineName,
-        accountConfig: accountConfig,
-        phaseType: phase.type,
-        phaseName: phase.name,
-        params: phase,
-        secrets: phaseSecrets
-    };
 }
 
 export function checkPhases(rockefellerFile: RockefellerFile, phaseDeployers: PhaseDeployers): PipelineCheckErrors {
@@ -139,22 +123,22 @@ export function validatePipelineSpec(rockefellerFile: RockefellerFile): string[]
 }
 
 export async function getPhaseSecrets(phaseDeployers: PhaseDeployers, rockefellerFile: RockefellerFile, pipelineName: string) {
-    const pipelineSecrets = [];
+    const pipelineSecrets: PhasesSecrets = {};
 
     for(const phaseSpec of rockefellerFile.pipelines[pipelineName].phases) {
         const phaseType = phaseSpec.type;
         const phaseDeployer = phaseDeployers[phaseType];
         const phaseSecrets = await phaseDeployer.getSecretsForPhase(phaseSpec);
-        pipelineSecrets.push(phaseSecrets);
+        pipelineSecrets[phaseSpec.name] = phaseSecrets;
     }
 
     return pipelineSecrets;
 }
 
-export function getSecretsFromArgv(rockefellerFile: RockefellerFile, argv: ParsedArgs): PhaseSecrets[] {
+export function getSecretsFromArgv(rockefellerFile: RockefellerFile, argv: ParsedArgs): PhasesSecrets {
     argv.secrets = JSON.parse(new Buffer(argv.secrets, 'base64').toString());
     const pipelinePhases = rockefellerFile.pipelines[argv.pipeline].phases;
-    const result: PhaseSecrets[] = [];
+    const result: PhasesSecrets = {};
     // tslint:disable-next-line:prefer-for-of
     for (let i = 0; i < pipelinePhases.length; i++) {
         const phase = pipelinePhases[i];
@@ -164,97 +148,87 @@ export function getSecretsFromArgv(rockefellerFile: RockefellerFile, argv: Parse
                 phaseSecrets[secret.name] = secret.value;
             }
         }
-        result.push(phaseSecrets);
+        result[phase.name] = phaseSecrets;
     }
     return result;
 }
 
-export function deployPhases(phaseDeployers: PhaseDeployers,
-    rockefellerFile: RockefellerFile,
-    pipelineName: string,
-    accountConfig: AccountConfig,
-    phasesSecrets: PhaseSecrets[],
-    codePipelineBucketName: string) {
+export function deployPhases(
+    phaseDeployers: PhaseDeployers,
+    pipelineContext: PipelineContext
+) {
+    // This is not populating when I run the function in the tests, is it just this function, or the test?
     const deployPromises = [];
 
-    const pipelinePhases = rockefellerFile.pipelines[pipelineName].phases;
-    for (let i = 0; i < pipelinePhases.length; i++) {
-        const phase = pipelinePhases[i];
-        // TODO - Revisit how these PhaseContext objects look
-        const phaseContext = getPhaseContext(rockefellerFile, codePipelineBucketName, pipelineName, accountConfig, phase, phasesSecrets[i]);
+    // tslint:disable-next-line:forin
+    for (const phaseName in pipelineContext.phaseContexts) {
+        const phaseContext = pipelineContext.phaseContexts[phaseName];
         deployPromises.push(deployPhase(phaseContext, phaseDeployers));
     }
 
     return Promise.all(deployPromises);
 }
 
-export async function deployPipeline(rockefellerFile: RockefellerFile,
-    pipelineName: string,
-    accountConfig: AccountConfig,
+export async function deployPipeline(
     pipelinePhases: AWS.CodePipeline.StageDeclaration[],
-    codePipelineBucketName: string) {
-    const appName = rockefellerFile.name;
-    const pipelineProjectName = codepipelineCalls.getPipelineProjectName(appName, pipelineName);
+    pipelineContext: PipelineContext
+) {
+    const appName = pipelineContext.appName;
+    const pipelineProjectName = codepipelineCalls.getPipelineProjectName(appName, pipelineContext.pipelineName);
 
     const pipeline = await codepipelineCalls.getPipeline(pipelineProjectName);
     if (!pipeline) {
-        return codepipelineCalls.createPipeline(appName, pipelineName, accountConfig, pipelinePhases, codePipelineBucketName);
+        return codepipelineCalls.createPipeline(appName, pipelineContext.pipelineName, pipelineContext.accountConfig, pipelinePhases, pipelineContext.codepipelineBucketName);
     }
     else {
-        return codepipelineCalls.updatePipeline(appName, pipelineName, accountConfig, pipelinePhases, codePipelineBucketName);
+        return codepipelineCalls.updatePipeline(appName, pipelineContext.pipelineName, pipelineContext.accountConfig, pipelinePhases, pipelineContext.codepipelineBucketName);
     }
 }
 
-export function deletePhases(phaseDeployers: PhaseDeployers,
-    rockefellerFile: RockefellerFile,
-    pipelineName: string,
-    accountConfig: AccountConfig,
-    codePipelineBucketName: string) {
+export function deletePhases(
+    phaseDeployers: PhaseDeployers,
+    pipelineContext: PipelineContext
+) {
     const deletePromises = [];
 
-    const pipelinePhases = rockefellerFile.pipelines[pipelineName].phases;
-    for (const pipelinePhase of pipelinePhases) {
-        const phaseType = pipelinePhase.type;
-        const phaseDeloyer = phaseDeployers[phaseType];
+    // tslint:disable-next-line:forin
+    for (const phaseName in pipelineContext.phaseContexts) {
+        const phaseDeloyer = phaseDeployers[phaseName];
 
-        const phaseContext = getPhaseContext(rockefellerFile, codePipelineBucketName, pipelineName, accountConfig, pipelinePhase, {}); // Don't need phase secrets for delete
+        const phaseContext = pipelineContext.phaseContexts[phaseName]; // Don't need phase secrets for delete
         deletePromises.push(phaseDeloyer.deletePhase(phaseContext));
     }
 
     return Promise.all(deletePromises);
 }
 
-export function deletePipeline(appName: string, pipelineName: string) {
-    return codepipelineCalls.deletePipeline(appName, pipelineName);
+export function deletePipeline(pipelineContext: PipelineContext) {
+    return codepipelineCalls.deletePipeline(pipelineContext.appName, pipelineContext.pipelineName);
 }
 
-export async function addWebhooks(phaseDeployers: PhaseDeployers,
-    rockefellerFile: RockefellerFile,
-    pipelineName: string,
-    accountConfig: AccountConfig,
-    codePipelineBucketName: string) {
-    const pipelinePhases = rockefellerFile.pipelines[pipelineName].phases;
-    for (const pipelinePhase of pipelinePhases) {
-        const phaseType = pipelinePhase.type;
-        const phaseDeloyer = phaseDeployers[phaseType];
+export async function addWebhooks(
+    phaseDeployers: PhaseDeployers,
+    pipelineContext: PipelineContext
+) {
+    // tslint:disable-next-line:forin
+    for (const phaseName in pipelineContext.phaseContexts) {
+        const phaseDeloyer = phaseDeployers[phaseName];
         if (phaseDeloyer.addWebhook) {
-            const phaseContext = getPhaseContext(rockefellerFile, codePipelineBucketName, pipelineName, accountConfig, pipelinePhase, {});
+            const phaseContext = pipelineContext.phaseContexts[phaseName];
             await phaseDeloyer.addWebhook(phaseContext);
         }
     }
 }
 
-export async function removeWebhooks(phaseDeployers: PhaseDeployers,
-    rockefellerFile: RockefellerFile,
-    pipelineName: string,
-    accountConfig: AccountConfig,
-    codePipelineBucketName: string) {
-    const pipelinePhases = rockefellerFile.pipelines[pipelineName].phases;
-    for (const pipelinePhase of pipelinePhases) {
-        const phaseType = pipelinePhase.type;
-        const phaseDeloyer = phaseDeployers[phaseType];
+export async function removeWebhooks(
+    phaseDeployers: PhaseDeployers,
+    pipelineContext: PipelineContext
+) {
+    // tslint:disable-next-line:forin
+    for (const phaseName in pipelineContext.phaseContexts) {
+        const phaseDeloyer = phaseDeployers[phaseName];
         if (phaseDeloyer.removeWebhook) {
-            const phaseContext = getPhaseContext(rockefellerFile, codePipelineBucketName, pipelineName, accountConfig, pipelinePhase, {});
+            const phaseContext = pipelineContext.phaseContexts[phaseName];
             await phaseDeloyer.removeWebhook(phaseContext);
         }
     }

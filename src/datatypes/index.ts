@@ -19,13 +19,25 @@ export class PipelineContext {
     public appName: string;
     public pipelineName: string;
     public accountConfig: AccountConfig;
+    public phaseContexts: PhaseContexts;
+    public codepipelineBucketName: string;
 
-    constructor(rockefellerVersion: number, appName: string, pipelineName: string, accountConfig: AccountConfig) {
+    constructor(rockefellerVersion: number, appName: string, pipelineName: string, accountConfig: AccountConfig, codepipelineBucketName: string) {
         this.rockefellerVersion = rockefellerVersion;
         this.appName = appName;
         this.pipelineName = pipelineName;
         this.accountConfig = accountConfig;
+        this.codepipelineBucketName = codepipelineBucketName;
+        this.phaseContexts = {};
     }
+}
+
+export interface PhasesSecrets {
+    [phaseName: string]: PhaseSecrets;
+}
+
+export interface PhaseContexts {
+    [phaseName: string]: PhaseContext<PhaseConfig>;
 }
 
 export class PhaseContext<Config extends PhaseConfig> {
