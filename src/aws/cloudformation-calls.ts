@@ -69,7 +69,11 @@ export async function waitForStack(stackName: string, stackState: string) {
     }
 }
 
-export async function createStack(stackName: string, templateBody: string, parameters: any) {
+export async function createStack(
+    stackName: string,
+    templateBody: string,
+    parameters: any
+) {
     const params = {
         StackName: stackName,
         OnFailure: 'DELETE',

@@ -64,7 +64,10 @@ function cacheConfigParam(paramName: string, paramValue: string) {
     }
 }
 
-function askAccountConfigsQuestionIfNeeded(configs: PhaseSecrets, questions: inquirer.Question[]) {
+function askAccountConfigsQuestionIfNeeded(
+    configs: PhaseSecrets,
+    questions: inquirer.Question[]
+) {
     const accountConfigsPath = getConfigParam('account_configs_path');
     if (accountConfigsPath) {
         configs.accountConfigsPath = accountConfigsPath;

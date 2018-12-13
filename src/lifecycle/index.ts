@@ -31,7 +31,10 @@ interface PipelineCheckErrors {
     [pipelineName: string]: string[];
 }
 
-function deployPhase(phaseContext: PhaseContext<PhaseConfig>, phaseDeployers: PhaseDeployers): Promise<AWS.CodePipeline.StageDeclaration> {
+function deployPhase(
+    phaseContext: PhaseContext<PhaseConfig>,
+    phaseDeployers: PhaseDeployers
+): Promise<AWS.CodePipeline.StageDeclaration> {
     return Promise.resolve()
         .then(async () => {
             const phaseDeployer = phaseDeployers[phaseContext.phaseType];
@@ -45,7 +48,10 @@ function deployPhase(phaseContext: PhaseContext<PhaseConfig>, phaseDeployers: Ph
         });
 }
 
-export function checkPhases(rockefellerFile: RockefellerFile, phaseDeployers: PhaseDeployers): PipelineCheckErrors {
+export function checkPhases(
+    rockefellerFile: RockefellerFile,
+    phaseDeployers: PhaseDeployers
+): PipelineCheckErrors {
     const pipelineErrors: PipelineCheckErrors = {};
 
     for (const pipelineName in rockefellerFile.pipelines) {
@@ -121,7 +127,11 @@ export function validatePipelineSpec(rockefellerFile: RockefellerFile): string[]
     return errors;
 }
 
-export async function getPhaseSecrets(phaseDeployers: PhaseDeployers, rockefellerFile: RockefellerFile, pipelineName: string) {
+export async function getPhaseSecrets(
+    phaseDeployers: PhaseDeployers,
+    rockefellerFile: RockefellerFile,
+    pipelineName: string
+) {
     const pipelineSecrets: PhasesSecrets = {};
 
     for(const phaseSpec of rockefellerFile.pipelines[pipelineName].phases) {
@@ -134,7 +144,10 @@ export async function getPhaseSecrets(phaseDeployers: PhaseDeployers, rockefelle
     return pipelineSecrets;
 }
 
-export function getSecretsFromArgv(rockefellerFile: RockefellerFile, argv: ParsedArgs): PhasesSecrets {
+export function getSecretsFromArgv(
+    rockefellerFile: RockefellerFile,
+    argv: ParsedArgs
+): PhasesSecrets {
     argv.secrets = JSON.parse(new Buffer(argv.secrets, 'base64').toString());
     const pipelinePhases = rockefellerFile.pipelines[argv.pipeline].phases;
     const result: PhasesSecrets = {};

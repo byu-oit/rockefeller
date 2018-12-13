@@ -55,7 +55,10 @@ function validateRockefellerFile(rockefellerFile: RockefellerFile) {
     }
 }
 
-function checkPhases(rockefellerFile: RockefellerFile, phaseDeployers: PhaseDeployers) {
+function checkPhases(
+    rockefellerFile: RockefellerFile,
+    phaseDeployers: PhaseDeployers
+) {
     const pipelinePhaseErrors = lifecycle.checkPhases(rockefellerFile, phaseDeployers);
     let hadErrors = false;
     for (const pipelineName in pipelinePhaseErrors) {
@@ -111,7 +114,10 @@ export function getPhaseContext(
     };
 }
 
-export async function deployAction(rockefellerFile: RockefellerFile, argv: ParsedArgs) {
+export async function deployAction(
+    rockefellerFile: RockefellerFile,
+    argv: ParsedArgs
+) {
     await stsCalls.validateLoggedIn();
     configureLogger(argv);
     const phaseDeployers = await util.getPhaseDeployers();
@@ -161,7 +167,10 @@ export async function deployAction(rockefellerFile: RockefellerFile, argv: Parse
     }
 }
 
-export async function checkAction(rockefellerFile: RockefellerFile, argv: ParsedArgs) {
+export async function checkAction(
+    rockefellerFile: RockefellerFile,
+    argv: ParsedArgs
+) {
     configureLogger(argv);
     const phaseDeployers = await util.getPhaseDeployers();
     lifecycle.validatePipelineSpec(rockefellerFile);
@@ -169,8 +178,10 @@ export async function checkAction(rockefellerFile: RockefellerFile, argv: Parsed
     winston.info('No errors were found in your Handel-CodePipeline file');
 }
 
-// TODO - Use pipeline context object instead
-export async function deleteAction(rockefellerFile: RockefellerFile, argv: ParsedArgs) {
+export async function deleteAction(
+    rockefellerFile: RockefellerFile,
+    argv: ParsedArgs
+) {
     configureLogger(argv);
     if (!(argv.pipeline && argv.account_name)) {
         winston.info('Welcome to the Handel CodePipeline deletion wizard');
@@ -200,7 +211,10 @@ export async function deleteAction(rockefellerFile: RockefellerFile, argv: Parse
     }
 }
 
-export async function listSecretsAction(rockefellerFile: RockefellerFile, argv: ParsedArgs) {
+export async function listSecretsAction(
+    rockefellerFile: RockefellerFile,
+    argv: ParsedArgs
+) {
     if (!argv.pipeline) {
         winston.error('The --pipeline argument is required');
         process.exit(1);
