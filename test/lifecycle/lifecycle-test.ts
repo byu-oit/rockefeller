@@ -18,14 +18,11 @@ import { expect } from 'chai';
 import { AccountConfig } from 'handel-extension-api';
 import * as sinon from 'sinon';
 import * as codepipelineCalls from '../../src/aws/codepipeline-calls';
-import * as cli from '../../src/cli';
 import * as util from '../../src/common/util';
 import {
     PhaseConfig,
     PhaseContext,
-    PhaseDeployer,
     PhaseDeployers,
-    PhaseSecrets,
     PipelineContext,
     RockefellerFile
 } from '../../src/datatypes/index';
@@ -56,10 +53,6 @@ describe('lifecycle module', () => {
                         {
                             type: 'codebuild',
                             name: 'Build'
-                        },
-                        {
-                            type: 'handel',
-                            name: 'Deploy'
                         }
                     ]
                 }
@@ -84,8 +77,11 @@ describe('lifecycle module', () => {
         };
 
         const pipelineName = 'prd';
-
-        pipelineContext = new PipelineContext(rockefellerFile.version, rockefellerFile.name, pipelineName, accountConfig, 'someCodepieplineBucketName');
+        const codePipelineBucketName = 'someCodepieplineBucketName';
+        pipelineContext = new PipelineContext(rockefellerFile.version, rockefellerFile.name, pipelineName, accountConfig, codePipelineBucketName);
+        for(const phase of rockefellerFile.pipelines[pipelineName].phases) {
+            pipelineContext.phaseContexts[phase.name] = new PhaseContext(rockefellerFile.name, phase.name, phase.type, codePipelineBucketName, pipelineName, accountConfig, phase, {});
+        }
     });
 
     afterEach(() => {
@@ -175,6 +171,10 @@ describe('lifecycle module', () => {
         });
 
         it('should return an error if any phase does not have a type field', () => {
+            rockefellerFile.pipelines.prd.phases.push({
+                type: 'handel',
+                name: 'Deploy'
+            });
             delete rockefellerFile.pipelines.prd.phases[2].type;
 
             const errors = lifecycle.validatePipelineSpec(rockefellerFile);
@@ -217,20 +217,15 @@ describe('lifecycle module', () => {
                 name: 'FakeName',
                 actions: []
             };
-            // This is returning as a function, and not as the resolved promise
             phaseDeployers.github.deployPhase = (phaseContext) => Promise.resolve(githubPhaseResult);
             const codebuildPhaseResult = {
                 name: 'FakeName',
                 actions: []
             };
-            // This is returning as a function, and not as the resolved promise
             phaseDeployers.codebuild.deployPhase = (phaseContext) => Promise.resolve(codebuildPhaseResult);
             rockefellerFile = util.loadYamlFile(`${__dirname}/handel-codepipeline-example.yml`);
-            const pipelineToDeploy = 'dev';
-            const phaseSecrets: PhaseSecrets = {};
 
             const phases = await lifecycle.deployPhases(phaseDeployers, pipelineContext);
-            // Phases are returning as []
             expect(phases.length).to.equal(2);
             expect(phases[0]).to.deep.equal(githubPhaseResult);
             expect(phases[1]).to.deep.equal(codebuildPhaseResult);
@@ -239,7 +234,6 @@ describe('lifecycle module', () => {
 
     describe('deployPipeline', () => {
         rockefellerFile = util.loadYamlFile(`${__dirname}/handel-codepipeline-example.yml`);
-        const pipelineToDeploy = 'dev';
         const pipelinePhases: AWS.CodePipeline.StageDeclaration[] = [];
 
         it('should create the pipeline', async () => {
@@ -268,7 +262,6 @@ describe('lifecycle module', () => {
             phaseDeployers.github.deletePhase = (phaseContext) => Promise.resolve(true);
             phaseDeployers.codebuild.deletePhase = (phaseContext) => Promise.resolve(true);
             rockefellerFile = util.loadYamlFile(`${__dirname}/handel-codepipeline-example.yml`);
-            const pipelineToDelete = 'dev';
 
             const results = await lifecycle.deletePhases(phaseDeployers, pipelineContext);
             expect(results.length).to.equal(2);
@@ -291,7 +284,6 @@ describe('lifecycle module', () => {
             rockefellerFile = util.loadYamlFile(`${__dirname}/handel-codepipeline-example.yml`);
             const addWebhookStub = sandbox.stub().resolves();
             phaseDeployers.github.addWebhook = addWebhookStub;
-            const pipelineToDeploy = 'dev';
 
             await lifecycle.addWebhooks(phaseDeployers, pipelineContext);
             expect(addWebhookStub.callCount).to.equal(1);
@@ -303,7 +295,6 @@ describe('lifecycle module', () => {
             rockefellerFile = util.loadYamlFile(`${__dirname}/handel-codepipeline-example.yml`);
             const removeWebhookStub = sandbox.stub().resolves();
             phaseDeployers.github.removeWebhook = removeWebhookStub;
-            const pipelineToDeploy = 'dev';
 
             await lifecycle.removeWebhooks(phaseDeployers, pipelineContext);
             expect(removeWebhookStub.callCount).to.equal(1);

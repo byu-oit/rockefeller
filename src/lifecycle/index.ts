@@ -15,7 +15,6 @@
  *
  */
 import * as AWS from 'aws-sdk';
-import { AccountConfig } from 'handel-extension-api';
 import { ParsedArgs } from 'minimist';
 import * as codepipelineCalls from '../aws/codepipeline-calls';
 import {
@@ -193,10 +192,9 @@ export function deletePhases(
 
     // tslint:disable-next-line:forin
     for (const phaseName in pipelineContext.phaseContexts) {
-        const phaseDeloyer = phaseDeployers[phaseName];
-
-        const phaseContext = pipelineContext.phaseContexts[phaseName]; // Don't need phase secrets for delete
-        deletePromises.push(phaseDeloyer.deletePhase(phaseContext));
+        const phaseContext = pipelineContext.phaseContexts[phaseName];
+        const phaseDeployer = phaseDeployers[phaseContext.phaseType];
+        deletePromises.push(phaseDeployer.deletePhase(phaseContext));
     }
 
     return Promise.all(deletePromises);
@@ -212,12 +210,10 @@ export async function addWebhooks(
 ) {
     // tslint:disable-next-line:forin
     for (const phaseName in pipelineContext.phaseContexts) {
-        // phaseDeployer is returning as undefined
-        const phaseDeloyer = phaseDeployers[phaseName];
-        // this cannot read .addWebhook for PhaseDeployer
-        if (phaseDeloyer.addWebhook) {
-            const phaseContext = pipelineContext.phaseContexts[phaseName];
-            await phaseDeloyer.addWebhook(phaseContext);
+        const phaseContext = pipelineContext.phaseContexts[phaseName];
+        const phaseDeployer = phaseDeployers[phaseContext.phaseType];
+        if (phaseDeployer.addWebhook) {
+            await phaseDeployer.addWebhook(phaseContext);
         }
     }
 }
@@ -228,10 +224,10 @@ export async function removeWebhooks(
 ) {
     // tslint:disable-next-line:forin
     for (const phaseName in pipelineContext.phaseContexts) {
-        const phaseDeloyer = phaseDeployers[phaseName];
-        if (phaseDeloyer.removeWebhook) {
-            const phaseContext = pipelineContext.phaseContexts[phaseName];
-            await phaseDeloyer.removeWebhook(phaseContext);
+        const phaseContext = pipelineContext.phaseContexts[phaseName];
+        const phaseDeployer = phaseDeployers[phaseContext.phaseType];
+        if (phaseDeployer.removeWebhook) {
+            await phaseDeployer.removeWebhook(phaseContext);
         }
     }
 }

@@ -111,7 +111,6 @@ export function getPhaseContext(
     };
 }
 
-// TODO - ADD SOME PIPELINECONTEXT OBJECT. This would replace the many things we pass around individually
 export async function deployAction(rockefellerFile: RockefellerFile, argv: ParsedArgs) {
     await stsCalls.validateLoggedIn();
     configureLogger(argv);
@@ -170,6 +169,7 @@ export async function checkAction(rockefellerFile: RockefellerFile, argv: Parsed
     winston.info('No errors were found in your Handel-CodePipeline file');
 }
 
+// TODO - Use pipeline context object instead
 export async function deleteAction(rockefellerFile: RockefellerFile, argv: ParsedArgs) {
     configureLogger(argv);
     if (!(argv.pipeline && argv.account_name)) {
