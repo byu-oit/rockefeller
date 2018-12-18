@@ -14,6 +14,38 @@ export interface EnvironmentVariables {
     [key: string]: string;
 }
 
+export class PipelineContext {
+    public rockefellerVersion: number;
+    public appName: string;
+    public pipelineName: string;
+    public accountConfig: AccountConfig;
+    public phaseContexts: PhaseContexts;
+    public codepipelineBucketName: string;
+
+    constructor(
+        rockefellerVersion: number,
+        appName: string,
+        pipelineName: string,
+        accountConfig: AccountConfig,
+        codepipelineBucketName: string
+    ) {
+        this.rockefellerVersion = rockefellerVersion;
+        this.appName = appName;
+        this.pipelineName = pipelineName;
+        this.accountConfig = accountConfig;
+        this.codepipelineBucketName = codepipelineBucketName;
+        this.phaseContexts = {};
+    }
+}
+
+export interface PhasesSecrets {
+    [phaseName: string]: PhaseSecrets;
+}
+
+export interface PhaseContexts {
+    [phaseName: string]: PhaseContext<PhaseConfig>;
+}
+
 export class PhaseContext<Config extends PhaseConfig> {
     public appName: string;
     public phaseName: string;
@@ -24,8 +56,16 @@ export class PhaseContext<Config extends PhaseConfig> {
     public params: Config;
     public secrets: any; // TODO - Change this to its own type later
 
-    constructor(appName: string, phaseName: string, phaseType: string, codePipelineBucketName: string, pipelineName: string,
-                accountConfig: AccountConfig, params: Config, secrets: any) {
+    constructor(
+        appName: string,
+        phaseName: string,
+        phaseType: string,
+        codePipelineBucketName: string,
+        pipelineName: string,
+        accountConfig: AccountConfig,
+        params: Config,
+        secrets: any
+    ) {
         this.appName = appName;
         this.phaseName = phaseName;
         this.phaseType = phaseType;

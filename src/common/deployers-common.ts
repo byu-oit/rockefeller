@@ -22,7 +22,11 @@ import * as iamCalls from '../aws/iam-calls';
 import * as s3Calls from '../aws/s3-calls';
 import * as util from './util';
 
-export async function uploadDirectoryToBucket(directoryToUpload: string, s3FileName: string, s3BucketName: string): Promise<AWS.S3.ManagedUpload.SendData> {
+export async function uploadDirectoryToBucket(
+    directoryToUpload: string,
+    s3FileName: string,
+    s3BucketName: string
+): Promise<AWS.S3.ManagedUpload.SendData> {
     const zippedPath = `${os.tmpdir()}/${uuid()}.zip`;
     await util.zipDirectoryToFile(directoryToUpload, zippedPath);
     const s3ObjectInfo = await s3Calls.uploadFile(s3BucketName, s3FileName, zippedPath);
@@ -30,7 +34,10 @@ export async function uploadDirectoryToBucket(directoryToUpload: string, s3FileN
     return s3ObjectInfo;
 }
 
-export async function createLambdaCodePipelineRole(accountId: string, region: string): Promise<AWS.IAM.Role | null> {
+export async function createLambdaCodePipelineRole(
+    accountId: string,
+    region: string
+): Promise<AWS.IAM.Role | null> {
     const roleName = `RockefellerLambdaRole-${region}`;
     const policyArn = `arn:aws:iam::${accountId}:policy/rockefeller/${roleName}`;
     const policyDocument = {

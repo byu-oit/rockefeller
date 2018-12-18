@@ -30,7 +30,10 @@ export interface CloudformationConfig extends PhaseConfig {
     template_parameters_path?: string;
 }
 
-function getCloudFormationPhaseSpec(phaseContext: PhaseContext<CloudformationConfig>, accountConfig: AccountConfig): AWS.CodePipeline.StageDeclaration {
+function getCloudFormationPhaseSpec(
+    phaseContext: PhaseContext<CloudformationConfig>,
+    accountConfig: AccountConfig
+): AWS.CodePipeline.StageDeclaration {
     const spec: AWS.CodePipeline.StageDeclaration = {
         name: phaseContext.phaseName,
         actions: [

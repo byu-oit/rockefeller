@@ -24,7 +24,10 @@ import * as path from 'path';
  * Takes the given directory path and zips it up and stores it
  *   in the given file path
  */
-export function zipDirectoryToFile(directoryPath: string, filePath: string): Promise<void> {
+export function zipDirectoryToFile(
+    directoryPath: string,
+    filePath: string
+): Promise<void> {
     return new Promise((resolve, reject) => {
         if(!fs.existsSync(directoryPath)) {
             throw new Error(`Directory path to be zipped does not exist: ${directoryPath}`);
@@ -44,7 +47,10 @@ export function zipDirectoryToFile(directoryPath: string, filePath: string): Pro
     });
 }
 
-export function getAccountConfig(accountConfigsPath: string, accountId: string) {
+export function getAccountConfig(
+    accountConfigsPath: string,
+    accountId: string
+) {
     const accountConfigFilePath = `${accountConfigsPath}/${accountId}.yml`;
     if(fs.existsSync(accountConfigFilePath)) {
         const accountConfig = exports.loadYamlFile(accountConfigFilePath);
@@ -113,7 +119,10 @@ export function loadFile(filePath: string): string | null {
  * Given a handlebars template filename and a Javascript object of the variables
  * to inject in that template, compiles and returns the template
  */
-export function compileHandlebarsTemplate(filename: string, variables: any): Promise<string> {
+export function compileHandlebarsTemplate(
+    filename: string,
+    variables: any
+): Promise<string> {
     // TODO - This doesn't handle errors yet
     return new Promise((resolve, reject) => {
         fs.readFile(filename, 'utf-8', (error, source) => {
