@@ -159,7 +159,7 @@ export async function deployAction(
         await lifecycle.addWebhooks(phaseDeployers, pipelineContext);
         winston.info(`Finished creating pipeline in ${accountConfig.account_id}`);
     } catch (err) {
-        // when the account_config_path is not correct, then this block of code is hit.
+        // TODO - When the account_config_path is not correct, then this block of code is hit.
         // Have it ask again instead
         winston.error(`Error setting up Rockefeller: ${err.message}`);
         winston.error(err);
@@ -175,7 +175,7 @@ export async function checkAction(
     const phaseDeployers = await util.getPhaseDeployers();
     lifecycle.validatePipelineSpec(rockefellerFile);
     checkPhases(rockefellerFile, phaseDeployers);
-    winston.info('No errors were found in your Handel-CodePipeline file');
+    winston.info('No errors were found in your Rockefeller file');
 }
 
 export async function deleteAction(
@@ -184,7 +184,7 @@ export async function deleteAction(
 ) {
     configureLogger(argv);
     if (!(argv.pipeline && argv.account_name)) {
-        winston.info('Welcome to the Handel CodePipeline deletion wizard');
+        winston.info('Welcome to the Rockefeller deletion wizard');
     }
 
     const phaseDeployers = await util.getPhaseDeployers();
@@ -205,7 +205,7 @@ export async function deleteAction(
         return lifecycle.deletePhases(phaseDeployers, pipelineContext);
     }
     catch (err) {
-        winston.error(`Error deleting Handel CodePipeline: ${err}`);
+        winston.error(`Error deleting Rockefeller: ${err}`);
         winston.error(err);
         process.exit(1);
     }
@@ -220,7 +220,7 @@ export async function listSecretsAction(
         process.exit(1);
     }
     if (!rockefellerFile.pipelines[argv.pipeline]) {
-        throw new Error(`The pipeline '${argv.pipeline}' you specified doesn't exist in your Handel-Codepipeline file`);
+        throw new Error(`The pipeline '${argv.pipeline}' you specified doesn't exist in your Rockefeller file`);
     }
     const phaseDeployers = await util.getPhaseDeployers();
     const phaseDeployerSecretsQuestions: PhaseSecretQuestion[] = [];

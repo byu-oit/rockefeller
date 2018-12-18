@@ -17,6 +17,7 @@
 import * as AWS from 'aws-sdk';
 import { AccountConfig } from 'handel-extension-api';
 import * as winston from 'winston';
+import * as checkPhase from '../../common/check-phase';
 import {
     PhaseConfig,
     PhaseContext,
@@ -70,16 +71,7 @@ function getCloudFormationPhaseSpec(
 
 export class Phase implements PhaseDeployer {
     public check(phaseConfig: CloudformationConfig) {
-        const errors = [];
-
-        if (!phaseConfig.deploy_role) {
-            errors.push(`Cloudformation - The 'deploy_role' parameter is required`);
-        }
-        if (!phaseConfig.template_path) {
-            errors.push(`Cloudformation - The 'template_path' parameter is required`);
-        }
-
-        return errors;
+        return checkPhase.checkJsonSchema(`${__dirname}/params-schema.json`, phaseConfig);
     }
 
     public getSecretsForPhase(phaseConfig: CloudformationConfig) {

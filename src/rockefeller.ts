@@ -51,6 +51,7 @@ export function run() {
     const phase = process.argv[2] ? process.argv[2].toLowerCase() : '';
     switch (phase) {
         case 'deploy':
+            cli.checkAction(rockefellerFile, argv);
             cli.deployAction(rockefellerFile, argv);
             break;
         case 'check':

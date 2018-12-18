@@ -1,0 +1,29 @@
+{
+    "$schema": "http://json-schema.org/schema#",
+    "type": "object",
+    "properties": {
+        "type": {
+            "type": "string",
+            "description": "The phase type (should be approval)",
+            "pattern": "^approval$",
+            "errorMessage": "Must equal 'approval'"
+        },
+        "name": {
+            "type": "string",
+            "description": "The value you want to show up in your UI as your phase name",
+            "errorMessage": "Must be a string"
+        }
+    },
+    "required": [
+        "type",
+        "name"
+    ],
+    "additionalProperties": false,
+    "errorMessage": {
+        "additionalProperties": "Invalid/Unknown property specified",
+        "required": {
+            "type": "The 'type' field is required",
+            "name": "The 'name' field is required"
+        }
+    }
+}
