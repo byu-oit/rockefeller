@@ -18,6 +18,7 @@ import * as crypto from 'crypto';
 import * as inquirer from 'inquirer';
 import * as winston from 'winston';
 import * as codepipelineCalls from '../../aws/codepipeline-calls';
+import * as checkPhase from '../../common/check-phase';
 import {
     PhaseConfig,
     PhaseContext,
@@ -34,16 +35,7 @@ export interface GithubConfig extends PhaseConfig {
 
 export class Phase implements PhaseDeployer {
     public check(phaseConfig: GithubConfig): string[] {
-        const errors = [];
-
-        if (!phaseConfig.owner) {
-            errors.push(`GitHub - The 'owner' parameter is required`);
-        }
-        if (!phaseConfig.repo) {
-            errors.push(`GitHub - The 'repo' parameter is required`);
-        }
-
-        return errors;
+        return checkPhase.checkJsonSchema(`${__dirname}/params-schema.json`, phaseConfig);
     }
 
     public getSecretsForPhase(phaseConfig: PhaseConfig): Promise<PhaseSecrets> {
