@@ -58,6 +58,7 @@ export function run() {
             cli.checkAction(rockefellerFile, argv);
             break;
         case 'delete':
+            cli.checkAction(rockefellerFile, argv);
             cli.deleteAction(rockefellerFile, argv);
             break;
         case 'list-required-secrets':

@@ -30,7 +30,7 @@ Parameters
      - The name of the CodeCommit repository containing the source code that will build and deploy in the pipeline.
    * - branch
      - string
-     - No
+     - Yes
      - master
      - The name of the Git branch in the repository from which the pipeline will be invoked.
 

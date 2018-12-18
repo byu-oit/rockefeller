@@ -16,6 +16,7 @@
  */
 import * as AWS from 'aws-sdk';
 import * as winston from 'winston';
+import * as checkPhase from '../../common/check-phase';
 import {
     PhaseConfig,
     PhaseContext,
@@ -31,16 +32,7 @@ export interface CodeCommitConfig extends PhaseConfig {
 
 export class Phase implements PhaseDeployer {
     public check(phaseConfig: CodeCommitConfig): string[] {
-        const errors = [];
-
-        if (!phaseConfig.repo) {
-            errors.push(`GitHub - The 'repo' parameter is required`);
-        }
-        if (!phaseConfig.branch) {
-            errors.push(`GitHub - The 'branch' parameter is required`);
-        }
-
-        return errors;
+        return checkPhase.checkJsonSchema(`${__dirname}/params-schema.json`, phaseConfig);
     }
 
     public getSecretsForPhase(phaseConfig: CodeCommitConfig): Promise<PhaseSecrets> {

@@ -4,19 +4,28 @@
     "properties": {
         "type": {
             "type": "string",
-            "description": "The phase type (should always be cloudformation)",
-            "pattern": "^cloudformation$",
-            "errorMessage": "Should always be 'cloudformation'"
+            "description": "The phase type (should always be codebuild)",
+            "pattern": "codebuild$",
+            "errorMessage": "Should always be 'codebuild'"
         },
         "name": {
             "type": "string",
             "errorMessage": "Must be a string"
         },
-        "template_path": {
+        "build_image": {
             "type": "string",
             "errorMessage": "Must be a string"
         },
-        "deploy_role": {
+        "environment_variables": {
+            "type": "array",
+            "errorMessage": "Must be an array"
+        },
+        "cache": {
+            "type": "string",
+            "pattern": "^no-cache$|^s3$",
+            "errorMessage": "Should always be 'no-chache' or 's3'"
+        },
+        "build_role": {
             "type": "string",
             "errorMessage": "Must be a string"
         }
@@ -24,17 +33,15 @@
     "required": [
         "type",
         "name",
-        "template_path",
-        "deploy_role"
+        "build_image"
     ],
     "additionalProperties": false,
     "errorMessage": {
         "additionalProperties": "Invalid/Unknown property specified",
         "required": {
             "type": "The 'type' field is required",
-            "name": "The 'name' field is required",
-            "template_path": "The 'template_path' field is required",
-            "deploy_role": "The 'deploy_role' field is required"
+            "name": "The 'name' field si required",
+            "build_image": "The 'build_image' field is required"
         }
     }
 }

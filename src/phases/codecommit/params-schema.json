@@ -4,28 +4,28 @@
     "properties": {
         "type": {
             "type": "string",
-            "description": "The phase type (should always be cloudformation)",
-            "pattern": "^cloudformation$",
-            "errorMessage": "Should always be 'cloudformation'"
+            "description": "The phase type (should always be codecommit)",
+            "pattern": "^codecommit$",
+            "errorMessage": "Should always be 'codecommit'"
         },
         "name": {
             "type": "string",
             "errorMessage": "Must be a string"
         },
-        "template_path": {
+        "repo": {
             "type": "string",
             "errorMessage": "Must be a string"
         },
-        "deploy_role": {
+        "branch": {
             "type": "string",
-            "errorMessage": "Must be a string"
+            "errorMessage": "must be a string"
         }
     },
     "required": [
         "type",
         "name",
-        "template_path",
-        "deploy_role"
+        "repo",
+        "branch"
     ],
     "additionalProperties": false,
     "errorMessage": {
@@ -33,8 +33,8 @@
         "required": {
             "type": "The 'type' field is required",
             "name": "The 'name' field is required",
-            "template_path": "The 'template_path' field is required",
-            "deploy_role": "The 'deploy_role' field is required"
+            "repo": "The 'repo' field is required",
+            "branch": "The 'branch' field is required"
         }
     }
 }

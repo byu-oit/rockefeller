@@ -71,7 +71,7 @@ describe('codebuild phase module', () => {
             delete phaseConfig.build_image;
             const errors = codebuild.check(phaseConfig);
             expect(errors.length).to.equal(1);
-            expect(errors[0]).to.include(`The 'build_image' parameter is required`);
+            expect(errors[0]).to.include(`The 'build_image' field is required`);
         });
 
         it('should work when all required parameters are provided', () => {

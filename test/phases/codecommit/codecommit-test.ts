@@ -63,14 +63,14 @@ describe('github phase module', () => {
             delete phaseConfig.repo;
             const errors = codecommit.check(phaseConfig);
             expect(errors.length).to.equal(1);
-            expect(errors[0]).to.include(`The 'repo' parameter is required`);
+            expect(errors[0]).to.include(`The 'repo' field is required`);
         });
 
         it('should require the branch parameter', () => {
             delete phaseConfig.branch;
             const errors = codecommit.check(phaseConfig);
             expect(errors.length).to.equal(1);
-            expect(errors[0]).to.include(`The 'branch' parameter is required`);
+            expect(errors[0]).to.include(`The 'branch' field is required`);
         });
 
         it('should work when all required parameters are provided', () => {
