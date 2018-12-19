@@ -21,6 +21,7 @@ import * as winston from 'winston';
 import * as codeBuildCalls from '../../aws/codebuild-calls';
 import * as iamCalls from '../../aws/iam-calls';
 import * as ssmCalls from '../../aws/ssm-calls';
+import * as checkPhase from '../../common/check-phase';
 import * as util from '../../common/util';
 import {
     PhaseConfig,
@@ -201,7 +202,7 @@ function getQuestions(phaseConfig: PhaseConfig) {
 
 export class Phase implements PhaseDeployer {
     public check(phaseConfig: PypiConfig): string[] {
-        return []; // No required parameters
+        return checkPhase.checkJsonSchema(`${__dirname}/params-schema.json`, phaseConfig);
     }
 
     public getSecretsForPhase(phaseConfig: PypiConfig): Promise<PhaseSecrets> {

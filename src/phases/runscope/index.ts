@@ -18,6 +18,7 @@ import * as AWS from 'aws-sdk';
 import * as inquirer from 'inquirer';
 import * as winston from 'winston';
 import * as cloudformationCalls from '../../aws/cloudformation-calls';
+import * as checkPhase from '../../common/check-phase';
 import * as deployersCommon from '../../common/deployers-common';
 import * as util from '../../common/util';
 import {
@@ -75,7 +76,7 @@ function getQuestions(phaseConfig: PhaseConfig) {
 
 export class Phase implements PhaseDeployer {
     public check(phaseConfig: PhaseConfig): string[] {
-        return []; // No required parameters
+        return checkPhase.checkJsonSchema(`${__dirname}/params-schema.json`, phaseConfig);
     }
 
     public getSecretsForPhase(phaseConfig: PhaseConfig): Promise<PhaseSecrets> {

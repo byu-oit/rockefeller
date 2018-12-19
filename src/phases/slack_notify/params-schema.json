@@ -1,0 +1,41 @@
+{
+    "$schema": "http://json-schema.org/schema#",
+    "type": "object",
+    "properties": {
+        "type": {
+            "type": "string",
+            "description": "The phase type (should always be slack-notify",
+            "pattern": "^slack_notify$",
+            "errorMessage": "Should always be 'slack_notify'"
+        },
+        "name": {
+            "type": "string",
+            "errorMessage": "Must be a string"
+        },
+        "message": {
+            "type": "string",
+            "errorMessage": "Must be a string"
+        },
+        "channel": {
+            "type": "string",
+            "pattern": "^@|^#",
+            "errorMessage": "Must be a string"
+        }
+    },
+    "required": [
+        "type",
+        "name",
+        "message",
+        "channel"
+    ],
+    "additionalProperties": false,
+    "errorMessage": {
+        "additionalProperties": "Invalid/Unknown property specified",
+        "required": {
+            "type": "The 'type' parameter is required",
+            "name": "the 'name' parameter is required",
+            "message": "The 'message' parameter is required",
+            "channel": "The 'channel' parameter is required"
+        }
+    }
+}

@@ -16,6 +16,7 @@
  */
 import * as AWS from 'aws-sdk';
 import * as winston from 'winston';
+import * as checkPhase from '../../common/check-phase';
 import {
     PhaseConfig,
     PhaseContext,
@@ -63,13 +64,7 @@ function getInvokeLambdaPhaseSpec(phaseContext: PhaseContext<InvokeLambdaConfig>
 
 export class Phase implements PhaseDeployer {
     public check(phaseConfig: InvokeLambdaConfig): string[] {
-        const errors = [];
-
-        if(!phaseConfig.function_name) {
-            errors.push(`Invoke Lambda - The 'function_name' parameter is required`);
-        }
-
-        return errors;
+        return checkPhase.checkJsonSchema(`${__dirname}/params-schema.json`, phaseConfig);
     }
 
     public getSecretsForPhase(phaseConfig: InvokeLambdaConfig): Promise<PhaseSecrets> {
