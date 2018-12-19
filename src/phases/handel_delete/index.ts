@@ -18,6 +18,7 @@ import * as AWS from 'aws-sdk';
 import * as  winston from 'winston';
 import * as codeBuildCalls from '../../aws/codebuild-calls';
 import * as iamCalls from '../../aws/iam-calls';
+import * as checkPhase from '../../common/check-phase';
 import * as util from '../../common/util';
 import {
     PhaseConfig,
@@ -127,13 +128,7 @@ function getCodePipelinePhaseSpec(phaseContext: PhaseContext<HandelDeleteConfig>
 
 export class Phase implements PhaseDeployer {
     public check(phaseConfig: HandelDeleteConfig): string[] {
-        const errors: string[] = [];
-
-        if (!phaseConfig.environments_to_delete) {
-            errors.push(`GitHub - The 'environments_to_delete' parameter is required`);
-        }
-
-        return errors;
+        return checkPhase.checkJsonSchema(`${__dirname}/params-schema.json`, phaseConfig);
     }
 
     public getSecretsForPhase(phaseConfig: HandelDeleteConfig): Promise<PhaseSecrets> {

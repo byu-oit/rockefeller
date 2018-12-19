@@ -63,14 +63,15 @@ describe('cloudformation module', () => {
             delete phaseConfig.deploy_role;
             const errors = cloudformation.check(phaseConfig);
             expect(errors.length).to.equal(1);
-            expect(errors[0]).to.contain(`'deploy_role' parameter is required`);
+            expect(errors[0]).to.contain(`The 'deploy_role' field is required`);
         });
 
         it('should require the template_path parameter', () => {
             delete phaseConfig.template_path;
+            // The line below is throwing an error
             const errors = cloudformation.check(phaseConfig);
             expect(errors.length).to.equal(1);
-            expect(errors[0]).to.contain(`'template_path' parameter is required`);
+            expect(errors[0]).to.contain(`The 'template_path' field is required`);
         });
 
         it('should return no errors when all required params are present', () => {

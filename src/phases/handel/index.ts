@@ -19,6 +19,7 @@ import * as winston from 'winston';
 import * as codeBuildCalls from '../../aws/codebuild-calls';
 import { getPipelineProjectName } from '../../aws/codepipeline-calls';
 import * as iamCalls from '../../aws/iam-calls';
+import * as checkPhase from '../../common/check-phase';
 import * as util from '../../common/util';
 import {
     PhaseConfig,
@@ -129,13 +130,7 @@ function getCodePipelinePhaseSpec(phaseContext: PhaseContext<HandelConfig>): AWS
 
 export class Phase implements PhaseDeployer {
     public check(phaseConfig: HandelConfig): string[] {
-        const errors: string[] = [];
-
-        if (!phaseConfig.environments_to_deploy) {
-            errors.push(`GitHub - The 'environments_to_deploy' parameter is required`);
-        }
-
-        return errors;
+        return checkPhase.checkJsonSchema(`${__dirname}/params-schema.json`, phaseConfig);
     }
 
     public getSecretsForPhase(phaseConfig: HandelConfig): Promise<PhaseSecrets> {

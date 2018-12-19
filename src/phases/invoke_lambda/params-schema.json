@@ -1,0 +1,46 @@
+{
+    "$schema": "http://json-schema.org/schema#",
+    "type": "object",
+    "properties": {
+        "type": {
+            "type": "string",
+            "description": "The phase type (should always be invoke_lambda)",
+            "pattern": "^invoke_lambda$",
+            "errorMessage": "Should always be 'invoke_lambda'"
+        },
+        "name": {
+            "type": "string",
+            "errorMessage": "Must be a string"
+        },
+        "function_name": {
+            "type": "string",
+            "errorMessage": "Must be a string"
+        },
+        "function_parameters": {
+            "type": "object",
+            "patternProperties": {
+                "^.*$": {
+                    "anyOf": [
+                        {"type": "string"}
+                    ]
+                }
+            },
+            "additionalProperties": false,
+            "errorMessage": "Must contain parameter values to pass into the Lambda function"
+        }
+    },
+    "required": [
+        "type",
+        "name",
+        "function_name"
+    ],
+    "additionalProperties": false,
+    "errorMessage": {
+        "additionalProperties": "Invalid/Unknown property specified",
+        "required": {
+            "type": "The 'type' parameter is required",
+            "name": "The 'name'parameter is required",
+            "function_name": "The 'function_name' parameter is required"
+        }
+    }
+}

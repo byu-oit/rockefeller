@@ -23,6 +23,7 @@ import {
     CacheType
 } from '../../aws/codebuild-calls';
 import * as iamCalls from '../../aws/iam-calls';
+import * as checkPhase from '../../common/check-phase';
 import * as util from '../../common/util';
 import {
     EnvironmentVariables,
@@ -191,20 +192,7 @@ function getCodePipelinePhaseSpec(phaseContext: PhaseContext<CodeBuildConfig>): 
 
 export class Phase implements PhaseDeployer {
     public check(phaseConfig: CodeBuildConfig): string[] {
-        const errors: string[] = [];
-
-        if (!phaseConfig.build_image) {
-            errors.push(`CodeBuild - The 'build_image' parameter is required`);
-        }
-
-        if (phaseConfig.cache) {
-            const cache = phaseConfig.cache;
-            if (cache !== CacheType.S3 && cache !== CacheType.NO_CACHE) {
-                errors.push(`CodeBuild - The 'cache' parameter must be either 's3' or 'no-cache'`);
-            }
-        }
-
-        return errors;
+        return checkPhase.checkJsonSchema(`${__dirname}/params-schema.json`, phaseConfig);
     }
 
     public getSecretsForPhase(phaseConfig: CodeBuildConfig): Promise<PhaseSecrets> {

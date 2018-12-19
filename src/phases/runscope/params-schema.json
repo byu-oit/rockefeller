@@ -1,0 +1,28 @@
+{
+    "$schema": "http://json-schema.org/schema#",
+    "type": "object",
+    "properties": {
+        "type": {
+            "type": "string",
+            "description": "The phase type (should always be runscope)",
+            "pattern": "^runscope$",
+            "errorMessage": "Should always be 'runscope'"
+        },
+        "name": {
+            "type": "string",
+            "errorMessage": "Must be a string"
+        }
+    },
+    "required": [
+        "type",
+        "name"
+    ],
+    "additionalProperties": false,
+    "errorMessage": {
+        "additionalProperties": "Invalid/Unknown property specified",
+        "required": {
+            "type": "The 'type' parameter is required",
+            "name": "The 'name' parameter is required"
+        }
+    }
+}

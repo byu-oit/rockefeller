@@ -1,0 +1,47 @@
+{
+    "$schema": "http://json-schema.org/schema#",
+    "type": "object",
+    "properties": {
+        "type": {
+            "type": "string",
+            "description": "The phase type (should always be codebuild)",
+            "pattern": "codebuild$",
+            "errorMessage": "Should always be 'codebuild'"
+        },
+        "name": {
+            "type": "string",
+            "errorMessage": "Must be a string"
+        },
+        "build_image": {
+            "type": "string",
+            "errorMessage": "Must be a string"
+        },
+        "environment_variables": {
+            "type": "array",
+            "errorMessage": "Must be an array"
+        },
+        "cache": {
+            "type": "string",
+            "pattern": "^no-cache$|^s3$",
+            "errorMessage": "Should always be 'no-chache' or 's3'"
+        },
+        "build_role": {
+            "type": "string",
+            "errorMessage": "Must be a string"
+        }
+    },
+    "required": [
+        "type",
+        "name",
+        "build_image"
+    ],
+    "additionalProperties": false,
+    "errorMessage": {
+        "additionalProperties": "Invalid/Unknown property specified",
+        "required": {
+            "type": "The 'type' field is required",
+            "name": "The 'name' field si required",
+            "build_image": "The 'build_image' field is required"
+        }
+    }
+}

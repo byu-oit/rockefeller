@@ -16,12 +16,13 @@
  */
 import * as AWS from 'aws-sdk';
 import * as winston from 'winston';
+import * as checkPhase from '../../common/check-phase';
 import {
     PhaseConfig,
     PhaseContext,
     PhaseDeployer,
     PhaseSecretQuestion,
-    PhaseSecrets
+    PhaseSecrets,
 } from '../../datatypes/index';
 
 function getApprovalPhaseSpec(phaseContext: PhaseContext<PhaseConfig>): AWS.CodePipeline.StageDeclaration {
@@ -50,8 +51,7 @@ function getApprovalPhaseSpec(phaseContext: PhaseContext<PhaseConfig>): AWS.Code
 export class Phase implements PhaseDeployer {
     // TODO - Make check optional
     public check(phaseConfig: PhaseConfig): string[] {
-        // No required parameters
-        return [];
+        return checkPhase.checkJsonSchema(`${__dirname}/params-schema.json`, phaseConfig);
     }
 
     // TODO - Make getSecretsForPhase optional

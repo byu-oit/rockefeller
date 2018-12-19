@@ -1,0 +1,40 @@
+{
+    "$schema": "http://json-schema.org/schema#",
+    "type": "object",
+    "properties": {
+        "type": {
+            "type": "string",
+            "description": "The phase type (should always be codecommit)",
+            "pattern": "^codecommit$",
+            "errorMessage": "Should always be 'codecommit'"
+        },
+        "name": {
+            "type": "string",
+            "errorMessage": "Must be a string"
+        },
+        "repo": {
+            "type": "string",
+            "errorMessage": "Must be a string"
+        },
+        "branch": {
+            "type": "string",
+            "errorMessage": "must be a string"
+        }
+    },
+    "required": [
+        "type",
+        "name",
+        "repo",
+        "branch"
+    ],
+    "additionalProperties": false,
+    "errorMessage": {
+        "additionalProperties": "Invalid/Unknown property specified",
+        "required": {
+            "type": "The 'type' field is required",
+            "name": "The 'name' field is required",
+            "repo": "The 'repo' field is required",
+            "branch": "The 'branch' field is required"
+        }
+    }
+}
