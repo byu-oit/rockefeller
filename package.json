@@ -19,7 +19,7 @@
     "@types/dedent": "^0.7.0",
     "ajv": "^6.6.2",
     "archiver": "^1.3.0",
-    "async": "^2.6.1",
+    "async": "^3.2.2",
     "aws-sdk": "^2.332.0",
     "dedent": "^0.7.0",
     "fs": "0.0.1-security",
